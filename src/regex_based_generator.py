@@ -84,7 +84,7 @@ def generate_problem_regex(n_vars, n_agents, n_observations, n_announcements, st
 
     return problem_regex
 
-def generate_problems_to_csv(path, result_path, n_problems, n_vars=3, n_agents=3, n_observations=2, n_announcements=1, statement_size=3):
+def generate_problems_to_csv(result_path, n_problems, n_vars=3, n_agents=3, n_observations=2, n_announcements=1, statement_size=3):
     problem_regex = generate_problem_regex(n_vars, n_agents, n_observations, n_announcements, statement_size)
 
     print(f'Generating {n_problems} problems...')
@@ -101,23 +101,27 @@ def generate_problems_to_csv(path, result_path, n_problems, n_vars=3, n_agents=3
         # Print the progress
         nb_generated += 1
         if nb_generated % (n_problems//10) == 0:
-            print(f'{nb_generated/n_problems*100} % generated')
+            print(f'{(nb_generated/n_problems*100):.2f} % generated')
 
     print('Generating done')
 
-    print('Uploading to DropBox...')
+    # print('Uploading to DropBox...')
 
     # Upload the file to Dropbox
-    to_dropbox(df, f'/{result_path}', token)
+    # to_dropbox(df, f'/{result_path}', token)
 
-    print('Upload done')
+    # print('Upload done')
     
     # Get url of the uploaded file
-    url = get_url_of_file(result_path, token)
+    # url = get_url_of_file(result_path, token)
 
-    print(f'{result_path} uploaded to DropBox : {url}')
+    # print(f'{result_path} uploaded to DropBox : {url}')
 
-    return url
+    print(f'Saving to {result_path}')
+    # Save the file locally
+    df.to_csv(result_path, index=False)
+
+    print('Done')
 
 if __name__ == '__main__':
     path = sys.argv[1]
