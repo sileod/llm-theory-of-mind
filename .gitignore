@@ -1,4 +1,6 @@
 deprecated_*.py
 token.txt
 problems.txt
+*.csv
 .DS_Store
+*.ipynb
