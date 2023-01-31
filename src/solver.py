@@ -1,6 +1,11 @@
 import subprocess
 import pandas as pd
 import sys
+from util import to_dropbox, get_url_of_file
+
+# Read the token from the file
+with open('./token.txt', 'r') as f:
+    token = f.read()
 
 # Execute a bash command and return the output
 def execute(cmd):
@@ -44,17 +49,29 @@ def solve_problems_from_csv(path, result_path):
         # Print the progress
         nb_processed += 1
         if nb_processed % (len(df)//10) == 0:
-            print((nb_processed / len(df)) * 100, '% processed')
+            print(f'{((nb_processed / len(df)) * 100):.2f}, % processed')
     
     print('Processing done')
 
     # Concatenate the results to the original dataframe
     df = pd.concat([df, y_df], axis=1)
 
-    print('Saving the results to', result_path)
+    print('Uploading to DropBox...')
+
+    to_dropbox(df, f'/{result_path}', token)
+
+    print('Upload done')
+
+    url = get_url_of_file(result_path, token)
+
+    print(f'{result_path} uploaded to DropBox : {url}')
+
+    # print('Saving the results to', result_path)
     # Save the dataframe to a csv file
-    df.to_csv(result_path, index=False)
+    # df.to_csv(result_path, index=False)
     print('Done')
+
+    return url
 
 
 if __name__ == '__main__':
