@@ -3,10 +3,6 @@ import pandas as pd
 import sys
 from util import to_dropbox, get_url_of_file
 
-# Read the token from the file
-with open('./token.txt', 'r') as f:
-    token = f.read()
-
 # Execute a bash command and return the output
 def execute(cmd):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, executable='/bin/zsh')
@@ -58,11 +54,11 @@ def solve_problems_from_csv(path, result_path):
 
     print('Uploading to DropBox...')
 
-    to_dropbox(df, f'/{result_path}', token)
+    to_dropbox(df, f'/{result_path}')
 
     print('Upload done')
 
-    url = get_url_of_file(result_path, token)
+    url = get_url_of_file(result_path)
 
     print(f'{result_path} uploaded to DropBox : {url}')
 

@@ -7,10 +7,6 @@ from util import to_dropbox, get_url_of_file
 with open('./names.txt', 'r') as f:
     names = f.read().split('\n')
 
-# Read the token from the file
-with open('./token.txt', 'r') as f:
-    token = f.read()
-
 def generate_vars(n_vars):
     """
     Generate a list of variables from 1 to n_vars
@@ -108,12 +104,12 @@ def generate_problems_to_csv(result_path, n_problems, n_vars=3, n_agents=3, n_ob
     # print('Uploading to DropBox...')
 
     # Upload the file to Dropbox
-    # to_dropbox(df, f'/{result_path}', token)
+    # to_dropbox(df, f'/{result_path}')
 
     # print('Upload done')
     
     # Get url of the uploaded file
-    # url = get_url_of_file(result_path, token)
+    # url = get_url_of_file(result_path)
 
     # print(f'{result_path} uploaded to DropBox : {url}')
 

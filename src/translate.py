@@ -6,9 +6,6 @@ from util import to_dropbox
 with open('objects.txt', 'r') as f:
     objects = f.read().split('\n')
 
-with open('token.txt', 'r') as f:
-    token = f.read()
-
 vars_regex  = re.compile(r'VARS \d(,\d)*')
 law_regex   = re.compile(r'LAW [a-zA-Z0-9]+')
 obs_regex   = re.compile(r'OBS ([a-zA-Z]+:\d(,\d)* )+')
@@ -175,4 +172,4 @@ def translate_problem(problem):
 if __name__ == '__main__':
     df = pd.read_csv('https://www.dropbox.com/s/to69yj7vi1l4jvm/dataset_solved.csv?dl=1')
     df['translation'] = df['problem'].apply(translate_problem)
-    to_dropbox(df, '/translated_dataset.csv', token)
+    to_dropbox(df, '/translated_dataset.csv')

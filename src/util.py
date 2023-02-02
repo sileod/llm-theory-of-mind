@@ -1,6 +1,9 @@
 import dropbox
 
-def to_dropbox(dataframe, path, token):
+with open('token.txt', 'r') as f:
+    token = f.read()
+
+def to_dropbox(dataframe, path):
     dbx = dropbox.Dropbox(token)
 
     df_string = dataframe.to_csv(index=False)
@@ -12,7 +15,7 @@ def to_dropbox(dataframe, path, token):
         mode=dropbox.files.WriteMode.overwrite
     )
 
-def get_url_of_file(path, token):
+def get_url_of_file(path):
     dbx = dropbox.Dropbox(token)
     url = dbx.sharing_create_shared_link(f'/{path}').url
     return url
