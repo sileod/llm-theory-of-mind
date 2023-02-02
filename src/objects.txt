@@ -1,0 +1,13 @@
+ball
+candle
+dress
+fork
+guitar
+hammer
+jar
+key
+ladder
+necklace
+pencil
+soap
+towel
