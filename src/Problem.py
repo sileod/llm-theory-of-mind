@@ -206,7 +206,7 @@ def generate_problem(vars, agents, n_annoucements=1, law=None, observations=None
         observations = {agent: [random.choice(vars)] for agent in agents}
 
     if announcements is None:
-        announcements = [random.choice([Expression(Announcement(random_expression(vars, 1))), Expression(Announcement(Knowledge(random.choice(agents), random_expression(vars, 0))))]) for i in range(n_annoucements + 1)]
+        announcements = [random.choice([Expression(Announcement(random_expression(vars, 1))), Expression(Announcement(Knowledge(random.choice(agents), random_expression(vars, 0))))]) for i in range(n_annoucements)]
     
     if assertion is None:
         assertion = random.choice([Expression(random_expression(vars, 1)), Knowledge(random.choice(agents), random_expression(vars, 0))])
