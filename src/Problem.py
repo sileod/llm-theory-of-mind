@@ -196,7 +196,8 @@ def show_pb(p):
 
 def generate_problem(vars, agents, n_annoucements=1, law=None, observations=None, announcements=None, assertion=None):
     """
-    Generates a random problem with n_vars variables, n_agents agents and a random law.
+    Generates a problem with the given variables, agents, number of announcements, law, observations, announcements and assertion.
+    If any of these parameters is None, it is randomly generated.
     """
 
     if law is None:
