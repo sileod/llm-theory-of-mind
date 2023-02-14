@@ -1,5 +1,6 @@
 import pandas as pd
 import subprocess
+import random
 import csv
 
 def execute(cmd):
@@ -26,7 +27,7 @@ def solve_problem(smcdel_problem):
 
 if __name__ == '__main__':
     # Read the problems
-    df = pd.read_csv('test.csv')
+    df = pd.read_csv('test001.csv')
 
     # Remove duplicates
     df = df.drop_duplicates()
@@ -42,20 +43,35 @@ if __name__ == '__main__':
     one_of_each.rename(columns={'premises': 'prem'}, inplace=True)
 
     # Create the final dataframe
-    final_df = pd.DataFrame(columns=['problem', 'premises', 'true_assertion', 'false_assertion'])
+    final_df = pd.DataFrame(columns=['problem', 'premises', 'true_assertion', 'false_assertion', 'hypotesis', 'label'])
 
     # For each premises, get the true and false assertion
     for premises, group in one_of_each.groupby('prem'):
-        true_assertion = group[group['label'] == 1]['assertion'].values[0]
-        false_assertion = group[group['label'] == 0]['assertion'].values[0]
+        true_assertions = group[group['label'] == 1]['assertion']
+        false_assertions = group[group['label'] == 0]['assertion']
+
+        if len(true_assertions) == 0 or len(false_assertions) == 0:
+            continue
+
+        true_assertion = true_assertions.values[0]
+        false_assertion = false_assertions.values[0]
+
         label = group['label'].values[0]
         problem = group['problem'].values[0]
 
+        if random.choice([True, False]):
+            hypotesis = true_assertion
+            label = 'entailment'
+        else:
+            hypotesis = false_assertion
+            label = 'neutral'
+            
+
         # Create a new dataframe with the problem and the true and false assertion
-        pb_df = pd.DataFrame([[problem, premises, true_assertion, false_assertion]], columns=['problem', 'premises', 'true_assertion', 'false_assertion'])
+        pb_df = pd.DataFrame([[problem, premises, true_assertion, false_assertion, hypotesis, label]], columns=['problem', 'premises', 'true_assertion', 'false_assertion', 'hypotesis', 'label'])
 
         # Append the new dataframe to the final dataframe
         final_df = pd.concat([final_df, pb_df], ignore_index=True)
 
     # Save the final dataframe to a csv file
-    final_df.to_csv('final_dataset.csv', index=False, quoting=csv.QUOTE_ALL)
+    final_df.to_csv('final_dataset001.csv', index=False, quoting=csv.QUOTE_ALL)
