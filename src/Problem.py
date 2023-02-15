@@ -124,11 +124,11 @@ class Law:
         return self.expr.get_vars()
 
 class Problem:
-    def __init__(self, law, observations, announcements, assertion, format='smcdel'):
+    def __init__(self, law, observations, announcements, hypotesis, format='smcdel'):
         self.law = law
         self.observations = observations
         self.announcements = announcements
-        self.assertion = assertion
+        self.hypotesis = hypotesis
         self.format = format
         self.agents = list(observations.keys())
 
@@ -141,8 +141,8 @@ class Problem:
         ann_vars = []
         for announcement in self.announcements:
             ann_vars += announcement.get_vars()
-        assert_vars = self.assertion.get_vars()
-        # return list(set(self.law.get_vars() + self.assertion.get_vars()))
+        assert_vars = self.hypotesis.get_vars()
+        # return list(set(self.law.get_vars() + self.hypotesis.get_vars()))
         return list(set(law_vars + obs_vars + ann_vars + assert_vars))
 
     def observations_to_str(self):
@@ -165,7 +165,7 @@ class Problem:
     def change_format(self, format):
         self.format = format
         self.law.format = format
-        self.assertion.format = format
+        self.hypotesis.format = format
         for exprs in self.observations.values():
             for expr in exprs:
                 expr.format = format
@@ -179,9 +179,9 @@ class Problem:
         result += f'{self.law} {self.observations_to_str()}'
 
         if self.format == 'smcdel':
-            result += f'VALID? {self.announcements_to_str()} {self.assertion}'
+            result += f'VALID? {self.announcements_to_str()} {self.hypotesis}'
         elif self.format == 'natural':
-            result += f'{self.announcements_to_str()} {self.assertion}'
+            result += f'{self.announcements_to_str()} {self.hypotesis}'
         return result
 
 def show_pb(p):
@@ -192,11 +192,11 @@ def show_pb(p):
     print('law :', p.law)
     print('observations :', p.observations_to_str())
     print('announcements :', p.announcements_to_str())
-    print('assertion :', p.assertion)
+    print('hypotesis :', p.hypotesis)
 
-def generate_problem(vars, agents, n_annoucements=1, law=None, observations=None, announcements=None, assertion=None):
+def generate_problem(vars, agents, n_annoucements=1, law=None, observations=None, announcements=None, hypotesis=None):
     """
-    Generates a problem with the given variables, agents, number of announcements, law, observations, announcements and assertion.
+    Generates a problem with the given variables, agents, number of announcements, law, observations, announcements and hypotesis.
     If any of these parameters is None, it is randomly generated.
     """
 
@@ -209,10 +209,10 @@ def generate_problem(vars, agents, n_annoucements=1, law=None, observations=None
     if announcements is None:
         announcements = [random.choice([Expression(Announcement(random_expression(vars, 1))), Expression(Announcement(Knowledge(random.choice(agents), random_expression(vars, 0))))]) for i in range(n_annoucements)]
     
-    if assertion is None:
-        assertion = random.choice([Expression(random_expression(vars, 1)), Knowledge(random.choice(agents), random_expression(vars, 0))])
+    if hypotesis is None:
+        hypotesis = random.choice([Expression(random_expression(vars, 1)), Knowledge(random.choice(agents), random_expression(vars, 0))])
 
-    return Problem(law, observations, announcements, assertion)
+    return Problem(law, observations, announcements, hypotesis)
 
 def random_expression(vars, depth):
     """
