@@ -6,7 +6,7 @@ with open('token.txt', 'r') as f:
 def to_dropbox(dataframe, path):
     dbx = dropbox.Dropbox(token)
 
-    df_string = dataframe.to_csv(index=False)
+    df_string = dataframe.to_json(orient='records', lines=True)
     db_bytes = bytes(df_string, 'utf8')
     
     dbx.files_upload(
@@ -17,5 +17,5 @@ def to_dropbox(dataframe, path):
 
 def get_url_of_file(path):
     dbx = dropbox.Dropbox(token)
-    url = dbx.sharing_create_shared_link(f'/{path}').url
+    url = dbx.sharing_create_shared_link(f'{path}').url
     return url
