@@ -18,7 +18,6 @@ def parse_response(response):
     return -2
 
 def solve(problem):
-    print(problem)
     headers = {
         'authority': 'w4eg.de',
         'accept': '*/*',
