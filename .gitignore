@@ -4,3 +4,4 @@ problems.txt
 *.csv
 .DS_Store
 *.ipynb
+*.jsonl
