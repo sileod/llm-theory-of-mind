@@ -1,4 +1,5 @@
 import random
+import numpy as np
 
 class Expression:
     def __init__(self, expr, format='smcdel'):
@@ -127,41 +128,57 @@ class Law:
         return self.expr.get_vars()
 
 class Problem:
-    def __init__(self, variables, agents, n_announcements, law=None, observations=None, announcements=None, hypothesis=None, format='smcdel'):
-        self.variables = variables
-        self.agents = agents
+    # def __init__(self, variables, agents, n_announcements, law=None, observations=None, announcements=None, hypothesis=None, format='smcdel'):
+    def __init__(self, **setup):
+        self.format = 'smcdel'
 
-        self.law = law
+        self.variables = setup['variables']
+        self.agents = setup['agents']
+
+        self.law = setup['law']
         if self.law is None:
             self.law = Expression(Law(random_expression(self.variables, 1)))
         
-        self.observations = observations
+        self.observations = setup['matrix']
         if self.observations is None:
             self.observations = {agent: [random.choice(self.variables)] for agent in agents}
 
-        self.announcements = announcements
+        self.announcements = setup['announcements']
         if self.announcements is None:
-            self.announcements = [random.choice([Expression(Announcement(random_expression(self.variables, 1))), Expression(Announcement(Knowledge(random.choice(self.agents), random_expression(self.variables, 0))))]) for i in range(n_announcements)]
+            # self.announcements = [random.choice([Expression(Announcement(random_expression(self.variables, 1))), Expression(Announcement(Knowledge(random.choice(self.agents), random_expression(self.variables, 0))))]) for i in range(1)]
+            self.announcements = [Expression(Announcement(random.choice([random_expression(self.variables, 1), Knowledge(random.choice(self.agents), random_expression(self.variables, 0))]))) for i in range(1)]
 
-        self.hypothesis = hypothesis
+        self.hypothesis = setup['hypothesis']
         if self.hypothesis is None:
             self.hypothesis = random.choice([Expression(random_expression(self.variables, 1)), Expression(Knowledge(random.choice(self.agents), random_expression(self.variables, 0)))])
 
-        self.format = format
 
     def get_vars(self):
         return self.variables
 
+    # def observations_to_str(self):
+    #     result = ''
+    #     if self.format == 'smcdel':
+    #         result += 'OBS '
+
+    #     for agent, exprs in self.observations.items():
+    #         if self.format == 'smcdel':
+    #             result += f'{agent}: ' + ','.join([expr.to_smcdel() for expr in exprs]) + ' '
+    #         elif self.format == 'natural':
+    #             result += f'{agent} knows whether ' + ','.join([str(expr) for expr in exprs]) + '. '
+    #     return result
+
     def observations_to_str(self):
+        mx = np.transpose(self.observations.nonzero())
+        groupby = np.split(mx[:, 1], np.unique(mx[:,0], return_index=True)[1][1:])
         result = ''
         if self.format == 'smcdel':
             result += 'OBS '
-
-        for agent, exprs in self.observations.items():
+        for agent in range(len(groupby)):
             if self.format == 'smcdel':
-                result += f'{agent}: ' + ','.join([expr.to_smcdel() for expr in exprs]) + ' '
-            elif self.format == 'natural':
-                result += f'{agent} knows whether ' + ','.join([str(expr) for expr in exprs]) + '. '
+                result += f'{self.agents[agent]}:' + ','.join([self.variables[var].to_smcdel() for var in groupby[agent]]) + ' '
+            else:
+                result += f'{self.agents[agent]} knows whether ' + ', whether '.join([str(self.variables[var]) for var in groupby[agent]]) + '. '
         return result
 
     def announcements_to_str(self):
@@ -173,17 +190,19 @@ class Problem:
         self.format = format
         self.law.format = format
         self.hypothesis.format = format
-        for exprs in self.observations.values():
-            for expr in exprs:
-                expr.format = format
+        # for exprs in self.observations.values():
+        #     for expr in exprs:
+        #         expr.format = format
         for announcement in self.announcements:
             announcement.format = format
 
     def __str__(self):
         result = ''
         if self.format == 'smcdel':
-            result = 'VARS ' + ','.join([var.to_smcdel() for var in self.variables]) + ' '
-        result += f'{self.law} {self.observations_to_str()}'.strip()
+            result = 'VARS ' + ','.join([var.to_smcdel() for var in self.variables]) + ' ' + self.law.expr.to_smcdel() + ' '
+        elif self.format == 'natural':
+            result += f'{self.law} '
+        result += f'{self.observations_to_str()}'.strip()
 
         if self.format == 'smcdel':
             result += f' VALID? {self.announcements_to_str()} {self.hypothesis.expr.to_smcdel()}'
@@ -201,26 +220,6 @@ def show_pb(p):
     print('announcements :', p.announcements_to_str())
     print('hypothesis :', p.hypothesis)
 
-def generate_problem(vars, agents, n_annoucements=1, law=None, observations=None, announcements=None, hypothesis=None):
-    """
-    Generates a problem with the given variables, agents, number of announcements, law, observations, announcements and hypothesis.
-    If any of these parameters is None, it is randomly generated.
-    """
-
-    if law is None:
-        law = Expression(Law(random_expression(vars, 1)))
-
-    if observations is None:
-        observations = {agent: [random.choice(vars)] for agent in agents}
-
-    if announcements is None:
-        announcements = [random.choice([Expression(Announcement(random_expression(vars, 1))), Expression(Announcement(Knowledge(random.choice(agents), random_expression(vars, 0))))]) for i in range(n_annoucements)]
-    
-    if hypothesis is None:
-        hypothesis = random.choice([Expression(random_expression(vars, 1)), Knowledge(random.choice(agents), random_expression(vars, 0))])
-
-    return Problem(law, observations, announcements, hypothesis)
-
 def random_expression(vars, depth):
     """
     Generates a random logical expression of depth depth.
@@ -228,6 +227,10 @@ def random_expression(vars, depth):
 
     if depth == 0:
         return random.choice(vars)
+
+    # 50% chance of negation
+    # if random.random() < 0.5:
+    #     return Not(random_expression(vars, depth - 1))
 
     return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
 
