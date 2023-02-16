@@ -65,11 +65,40 @@ if __name__ == '__main__':
     # df['label'] = df['problem'].apply(solve)
     df['label'] = df['problem'].parallel_apply(solve)
 
+    one_of_each = df.groupby(['premise', 'label']).apply(lambda x: x.sample(1, random_state=42))
+    one_of_each.rename(columns={'premise': 'prem'}, inplace=True)
+
+    final_df = pd.DataFrame(columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
+
+    for premises, group in one_of_each.groupby('prem'):
+        true_hyps = group[group['label'] == 1]['hypothesis']
+        false_hyps = group[group['label'] == 0]['hypothesis']
+
+        if len(true_hyps) == 0 or len(false_hyps) == 0:
+            continue
+
+        true_hyp = true_hyps.values[0]
+        false_hyp = false_hyps.values[0]
+
+        label = group['label'].values[0]
+        problem = group['problem'].values[0]
+
+        if random.choice([True, False]):
+            hypothesis = true_hyp
+            label = 'entailment'
+        else:
+            hypothesis = false_hyp
+            label = 'neutral'
+
+        pb_df = pd.DataFrame([[problem, premises, true_hyp, false_hyp, hypothesis, label]], columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
+        
+        final_df = pd.concat([final_df, pb_df], ignore_index=True)
+
     # Save the dataframe to a jsonl file
-    df.to_json('test_refactored.jsonl', orient='records', lines=True)
+    final_df.to_json('test_refactored.jsonl', orient='records', lines=True)
 
-    to_dropbox(df, '/test_refactored.jsonl')
+    to_dropbox(final_df, '/dataset.jsonl')
 
-    url = get_url_of_file('/test_refactored.jsonl')
+    url = get_url_of_file('/dataset.jsonl')
 
     print(url)
