@@ -103,7 +103,7 @@ class Announcement:
         self.expr = expr
 
     def __str__(self):
-        return f'everyone sees that {self.expr}'
+        return f'It is publicly announced that {self.expr}'
 
     def to_smcdel(self):
         return f'[ ! {self.expr.to_smcdel()} ]'
