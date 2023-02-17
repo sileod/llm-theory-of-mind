@@ -128,12 +128,15 @@ class Law:
         return self.expr.get_vars()
 
 class Problem:
-    # def __init__(self, variables, agents, n_announcements, law=None, observations=None, announcements=None, hypothesis=None, format='smcdel'):
     def __init__(self, **setup):
         self.format = 'smcdel'
 
         self.variables = setup['variables']
         self.agents = setup['agents']
+
+        self.n_announcements = setup['n_announcements']
+
+        self.base_observation = setup['observation']
 
         self.law = setup['law']
         if self.law is None:
@@ -141,11 +144,10 @@ class Problem:
         
         self.observations = setup['matrix']
         if self.observations is None:
-            self.observations = {agent: [random.choice(self.variables)] for agent in agents}
+            self.observations = {agent: [random.choice(self.variables)] for agent in self.agents}
 
         self.announcements = setup['announcements']
         if self.announcements is None:
-            # self.announcements = [random.choice([Expression(Announcement(random_expression(self.variables, 1))), Expression(Announcement(Knowledge(random.choice(self.agents), random_expression(self.variables, 0))))]) for i in range(1)]
             self.announcements = [Expression(Announcement(random.choice([random_expression(self.variables, 1), Knowledge(random.choice(self.agents), random_expression(self.variables, 0))]))) for i in range(1)]
 
         self.hypothesis = setup['hypothesis']
