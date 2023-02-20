@@ -172,18 +172,6 @@ class Problem:
     def get_vars(self):
         return self.variables
 
-    # def observations_to_str(self):
-    #     result = ''
-    #     if self.format == 'smcdel':
-    #         result += 'OBS '
-
-    #     for agent, exprs in self.observations.items():
-    #         if self.format == 'smcdel':
-    #             result += f'{agent}: ' + ','.join([expr.to_smcdel() for expr in exprs]) + ' '
-    #         elif self.format == 'natural':
-    #             result += f'{agent} knows whether ' + ','.join([str(expr) for expr in exprs]) + '. '
-    #     return result
-
     def observations_to_str(self):
         mx = np.transpose(self.observations.nonzero())
         groupby = np.split(mx[:, 1], np.unique(mx[:,0], return_index=True)[1][1:])
@@ -206,9 +194,6 @@ class Problem:
         self.format = format
         self.law.format = format
         self.hypothesis.format = format
-        # for exprs in self.observations.values():
-        #     for expr in exprs:
-        #         expr.format = format
         for announcement in self.announcements:
             announcement.format = format
 
