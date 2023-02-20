@@ -85,8 +85,11 @@ internal = {
 
 setups = [forehead, arm_same_room, internal]
 
+Npb = 2000
+Nvariations = 5
+
 if __name__ == '__main__':
-    pandarallel.initialize(verbose=0)
+    pandarallel.initialize(verbose=0, progress_bar=True)
 
     print('Dataset generation started')
 
@@ -96,7 +99,7 @@ if __name__ == '__main__':
 
     # Create the dataframe
     df = pd.DataFrame(columns=['problem', 'premise', 'hypothesis'])
-    for _ in range(1000):
+    for _ in range(Npb):
 
         # Choose a random setup
         setup = np.random.choice(setups)
@@ -105,7 +108,7 @@ if __name__ == '__main__':
         setup['variables'] = [Var(Template(setup['variables_template']).substitute(agent=setup['agents'][i]), i) for i in range(len(setup['agents']))]
 
         # Create 5 problems with the same setup to get random hypotheses
-        for _ in range(5):
+        for _ in range(Nvariations):
 
             # Creating the problem
             pb = Problem(**setup)
@@ -130,8 +133,9 @@ if __name__ == '__main__':
 
             generated_problems += 1
         
-            if generated_problems % 100 == 0:
-                print(f'{generated_problems} problems generated')
+            percentage = ((generated_problems / (Npb * Nvariations)) * 100)
+            if percentage % 10 == 0:
+                print(percentage, '% generated')
     
     print('Problems generated')
 
