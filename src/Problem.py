@@ -159,7 +159,7 @@ class Problem:
 
         self.announcements = setup['announcements']
         if self.announcements is None:
-            self.announcements = [Expression(Announcement(random.choice([random_expression(self.variables, 1), Knowledge(random.choice(self.agents), random_expression(self.variables, 0))]))) for i in range(1)]
+            self.announcements = [Expression(Announcement(random.choice([random_expression(self.variables, 1), random.choice([KnowsThat, KnowsWhether])(random.choice(self.agents), random_expression(self.variables, 0))]))) for i in range(1)]
 
         self.hypothesis = setup['hypothesis']
         if self.hypothesis is None:
