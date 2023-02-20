@@ -88,15 +88,26 @@ class Knowledge:
     def __init__(self, agent, expr):
         self.agent = agent
         self.expr = expr
+        self.symbol = ''
     
     def to_smcdel(self):
-        return f'{self.agent} knows whether {self.expr.to_smcdel()}'
+        return f'{self.agent} {self.symbol} {self.expr.to_smcdel()}'
 
     def __str__(self):
-        return f'{self.agent} knows whether {self.expr}'
+        return f'{self.agent} {self.symbol} {self.expr}'
 
     def get_vars(self):
         return self.expr.get_vars()
+
+class KnowsThat(Knowledge):
+    def __init__(self, agent, expr):
+        super().__init__(agent, expr)
+        self.symbol = 'knows that'
+
+class KnowsWhether(Knowledge):
+    def __init__(self, agent, expr):
+        super().__init__(agent, expr)
+        self.symbol = 'knows whether'
 
 class Announcement:
     def __init__(self, expr):
