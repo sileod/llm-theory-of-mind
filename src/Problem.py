@@ -40,6 +40,9 @@ class Not(UnaryOperator):
         super().__init__('not', expr)
         self.smcdel_symbol = '~'
 
+    def __str__(self):
+        return str(self.expr).replace('is', 'is not')
+
 class BinaryOperator(Operator):
     def __init__(self, symbol, l_expr, r_expr):
         super().__init__(symbol)
