@@ -179,11 +179,13 @@ if __name__ == '__main__':
     # We need to do this because we want to remove as many duplicates as possible
     final_df['names'] = final_df['premise'].apply(get_agents_names)
     final_df['premise'] = final_df.apply(lambda x: replace_names(x['premise'], x['names'], anonymize=True), axis=1)
+    final_df['hypothesis'] = final_df.apply(lambda x: replace_names(x['hypothesis'], x['names'], anonymize=True), axis=1)
     # Remove duplicates
-    final_df = final_df.drop_duplicates(subset=['premise']).reset_index(drop=True)
+    final_df = final_df.drop_duplicates(subset=['premise', 'hypothesis']).reset_index(drop=True)
 
     # De-anonymize the names
     final_df['premise'] = final_df.apply(lambda x: replace_names(x['premise'], x['names'], anonymize=False), axis=1)
+    final_df['hypothesis'] = final_df.apply(lambda x: replace_names(x['hypothesis'], x['names'], anonymize=False), axis=1)
 
     # Remove the names column
     final_df = final_df.drop(columns=['names'])
