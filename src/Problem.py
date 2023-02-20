@@ -247,10 +247,8 @@ def random_expression(vars, depth):
             return Not(random.choice(vars))
         return random.choice(vars)
 
-    # 50% chance of negation
-    # if random.random() < 0.5:
-    #     return Not(random_expression(vars, depth - 1))
-
-    return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
+    # return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
+    return And(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
+    
 
     
