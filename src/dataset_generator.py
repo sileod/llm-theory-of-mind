@@ -159,22 +159,24 @@ if __name__ == '__main__':
         if len(true_hyps) == 0 or len(false_hyps) == 0:
             continue
 
-        true_hyp = true_hyps.values[0]
-        false_hyp = false_hyps.values[0]
+        for i in range(min(len(true_hyps), len(false_hyps))):
 
-        label = group['label'].values[0]
-        problem = group['problem'].values[0]
+            true_hyp = true_hyps.values[i]
+            false_hyp = false_hyps.values[i]
 
-        if random.choice([True, False]):
-            hypothesis = true_hyp
-            label = 'entailment'
-        else:
-            hypothesis = false_hyp
-            label = 'not_entailment'
+            label = group['label'].values[i]
+            problem = group['problem'].values[i]
 
-        pb_df = pd.DataFrame([[problem, premises, true_hyp, false_hyp, hypothesis, label]], columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
-        
-        final_df = pd.concat([final_df, pb_df], ignore_index=True)
+            if random.choice([True, False]):
+                hypothesis = true_hyp
+                label = 'entailment'
+            else:
+                hypothesis = false_hyp
+                label = 'not_entailment'
+
+            pb_df = pd.DataFrame([[problem, premises, true_hyp, false_hyp, hypothesis, label]], columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
+            
+            final_df = pd.concat([final_df, pb_df], ignore_index=True)
 
     print('Dataset prepared')
 
