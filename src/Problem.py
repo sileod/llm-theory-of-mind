@@ -242,6 +242,9 @@ def random_expression(vars, depth):
     """
 
     if depth == 0:
+        # 50% chance of negation
+        if random.random() < 0.5:
+            return Not(random.choice(vars))
         return random.choice(vars)
 
     # 50% chance of negation
