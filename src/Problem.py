@@ -163,7 +163,7 @@ class Problem:
 
         self.hypothesis = setup['hypothesis']
         if self.hypothesis is None:
-            self.hypothesis = random.choice([Expression(random_expression(self.variables, 1)), Expression(Knowledge(random.choice(self.agents), random_expression(self.variables, 0)))])
+            self.hypothesis = Expression(random.choice([KnowsThat, KnowsWhether])(random.choice(self.agents), random_expression(self.variables, 0)))
 
 
     def get_vars(self):
