@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
     print('Preparing the dataset')
 
-    one_of_each = df.groupby(['premise', 'label']).apply(lambda x: x.sample(1, random_state=42))
+    one_of_each = df.groupby(['premise', 'label'], group_keys=True).apply(lambda x: x.sample(1, random_state=42))
     one_of_each.rename(columns={'premise': 'prem'}, inplace=True)
 
     final_df = pd.DataFrame(columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
