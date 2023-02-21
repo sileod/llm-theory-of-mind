@@ -106,6 +106,8 @@ if __name__ == '__main__':
         
         setup['agents'] = n_random_first_names(n_agents)
         setup['variables'] = [Var(Template(setup['variables_template']).substitute(agent=setup['agents'][i]), i) for i in range(len(setup['agents']))]
+        setup['n_announcements'] = 2
+        setup['announcements'] = [Expression(Announcement(random.choice([random_expression(setup['variables'], 1), random.choice([KnowsThat, KnowsWhether])(random.choice(setup['agents']), random_expression(setup['variables'], 0))]))) for i in range(setup['n_announcements'])]
 
         # Create 5 problems with the same setup to get random hypotheses
         for _ in range(Nvariations):
