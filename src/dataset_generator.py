@@ -17,10 +17,17 @@ def get_agents_names(text):
     """
     # We could have used set() but we want to keep the order
     words = re.findall('[A-Z][a-z]+', text)
+
+    # We create our own set to keep the order
     unique_names = {}
+
+    # Count the number of agents
     agent = 0
+
     for name in words:
+        # If the name is not in the set, we add it
         if name not in unique_names:
+            # We bind the name to the agent number
             unique_names[name] = f'agent{agent}'
             agent += 1
     return unique_names
@@ -35,8 +42,10 @@ def replace_names(text, names, anonymize=True):
     :return: The text with the names replaced
     """
     for name in names:
+        # If anonymize is True, we replace the names by the agent0, agent1, agent2, ...
         if anonymize:
             text = text.replace(name, names[name])
+        # If anonymize is False, we replace the agent0, agent1, agent2, ... by the names
         else:
             text = text.replace(names[name], name)
     return text
@@ -50,7 +59,7 @@ forehead = {
     'agents': None,
     'law': Expression(Law('Top')),
     'matrix': np.ones((n_agents, n_agents)) - np.eye(n_agents),
-    'announcements': None,#[Expression(Announcement(random.choice([random_expression(variables, 1), Knowledge(random.choice(agents), random_expression(variables, 0))]))) for i in range(1)],
+    'announcements': None,
     'n_announcements': 1,
     'hypothesis': None,
     'type': 'visual',
@@ -63,7 +72,7 @@ arm_same_room = {
     'agents': None,
     'law': Expression(Law('Top')),
     'matrix': np.ones((n_agents, n_agents)),
-    'announcements': None,#[Expression(Announcement(random.choice([random_expression(variables, 1), Knowledge(random.choice(agents), random_expression(variables, 0))]))) for i in range(1)],
+    'announcements': None,
     'n_announcements': 1,
     'hypothesis': None,
     'type': 'visual',
@@ -76,7 +85,7 @@ internal = {
     'agents': None,
     'law': Expression(Law('Top')),
     'matrix': np.eye(n_agents),
-    'announcements': None,#[Expression(Announcement(random.choice([random_expression(variables, 1), Knowledge(random.choice(agents), random_expression(variables, 0))]))) for i in range(1)],
+    'announcements': None,
     'n_announcements': 1,
     'hypothesis': None,
     'type': 'mental',
@@ -85,31 +94,43 @@ internal = {
 
 setups = [forehead, arm_same_room, internal]
 
-Npb = 2000
+Npb = 10
 Nvariations = 5
 
 if __name__ == '__main__':
-    pandarallel.initialize(verbose=0, progress_bar=True)
+    # Initialize the parallelization
+    # It is used to solve the problems
+    pandarallel.initialize(verbose=0, progress_bar=True, nb_workers=8)
 
-    print('Dataset generation started')
+    print('Dataset generation started !')
+    print('Generating SMCDEL problems ...')
 
-    print('Generating problems')
-
+    # Count the number of generated problems
     generated_problems = 0
 
     # Create the dataframe
     df = pd.DataFrame(columns=['problem', 'premise', 'hypothesis'])
+
+    # Generate the problems
     for _ in range(Npb):
 
         # Choose a random setup
         setup = np.random.choice(setups)
         
+        # Generate the agents randomly
         setup['agents'] = n_random_first_names(n_agents)
+
+        # Generate the variables randomly according to the setup
         setup['variables'] = [Var(Template(setup['variables_template']).substitute(agent=setup['agents'][i]), i) for i in range(len(setup['agents']))]
+
+        # Setting the number of announcements
         setup['n_announcements'] = 2
+
+        # Setting random announcements here to keep the same premises for all the variations
         setup['announcements'] = [Expression(Announcement(random.choice([random_expression(setup['variables'], 1), random.choice([KnowsThat, KnowsWhether])(random.choice(setup['agents']), random_expression(setup['variables'], 0))]))) for i in range(setup['n_announcements'])]
 
-        # Create 5 problems with the same setup to get random hypotheses
+        # Create variations of the current problem with the same setup to get random hypotheses
+        # By doing this, we can hope to get an hypothesis for each label
         for _ in range(Nvariations):
 
             # Creating the problem
@@ -135,31 +156,33 @@ if __name__ == '__main__':
 
             generated_problems += 1
         
+            # Print the percentage of generated problems
             percentage = ((generated_problems / (Npb * Nvariations)) * 100)
             if percentage % 10 == 0:
-                print(percentage, '% generated')
+                print(percentage, '% generated', sep='')
     
-    print('Problems generated')
+    print('SMCDEL problems generated !')
 
-    print('Solving problems')
+    print('Solving SMCDEL problems ...')
 
+    # Solve the problems
     df['label'] = df['problem'].parallel_apply(solve)
 
-    print('Problems solved')
+    print('SMCDEL problems solved !')
 
     print('Preparing the dataset')
 
+    # Get one problem for each premise/label couple
     one_of_each = df.groupby(['premise', 'label'], group_keys=True).apply(lambda x: x.sample(1, random_state=42))
     one_of_each.rename(columns={'premise': 'prem'}, inplace=True)
 
+    # Create the final dataframe
     final_df = pd.DataFrame(columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
 
+    # For each premise, get the true and false hypotheses
     for premises, group in one_of_each.groupby('prem'):
         true_hyps = group[group['label'] == 1]['hypothesis']
         false_hyps = group[group['label'] == 0]['hypothesis']
-
-        if len(true_hyps) == 0 or len(false_hyps) == 0:
-            continue
 
         for i in range(min(len(true_hyps), len(false_hyps))):
 
@@ -187,6 +210,7 @@ if __name__ == '__main__':
     final_df['names'] = final_df['premise'].apply(get_agents_names)
     final_df['premise'] = final_df.apply(lambda x: replace_names(x['premise'], x['names'], anonymize=True), axis=1)
     final_df['hypothesis'] = final_df.apply(lambda x: replace_names(x['hypothesis'], x['names'], anonymize=True), axis=1)
+    
     # Remove duplicates
     final_df = final_df.drop_duplicates(subset=['premise', 'hypothesis']).reset_index(drop=True)
 
@@ -198,7 +222,7 @@ if __name__ == '__main__':
     final_df = final_df.drop(columns=['names'])
 
     # Save the dataframe to a jsonl file
-    final_df.to_json('/Users/number/Dropbox/Applications/modlog/dataset.jsonl', orient='records', lines=True)
+    final_df.to_json('/Users/number/Dropbox/Applications/modlog/blablabla.jsonl', orient='records', lines=True)
 
     # to_dropbox(final_df, '/dataset.jsonl')
 
