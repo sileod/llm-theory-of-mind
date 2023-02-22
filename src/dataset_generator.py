@@ -125,7 +125,7 @@ if __name__ == '__main__':
         setup['n_announcements'] = 2
 
         # Setting random announcements here to keep the same premises for all the variations
-        setup['announcements'] = [Expression(Announcement(random.choice([random_expression(setup['variables'], 1), random.choice([KnowsThat, KnowsWhether])(random.choice(setup['agents']), random_expression(setup['variables'], 0))]))) for i in range(setup['n_announcements'])]
+        setup['announcements'] = [Expression(Announcement(random.choice([random_expression(setup['variables'], 1), random_knowledge(setup['agents'], setup['variables'], 0)]))) for i in range(setup['n_announcements'])]
 
         # Create variations of the current problem with the same setup to get random hypotheses
         # By doing this, we can hope to get an hypothesis for each label

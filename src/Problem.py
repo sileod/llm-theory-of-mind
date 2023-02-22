@@ -236,7 +236,7 @@ class Problem:
         self.announcements = setup['announcements']
         if self.announcements is None:
             # If no announcements are given, we create random announcements
-            self.announcements = [Expression(Announcement(random.choice([random_expression(self.variables, 1), random.choice([KnowsThat, KnowsWhether])(random.choice(self.agents), random_expression(self.variables, 0))]))) for i in range(self.n_announcements)]
+            self.announcements = [Expression(Announcement(random.choice([random_expression(self.variables, 1), random_knowledge(self.agents, self.variables, 0)]))) for i in range(self.n_announcements)]
 
         # The hypothesis of the problem
         self.hypothesis = setup['hypothesis']
