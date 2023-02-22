@@ -332,5 +332,17 @@ def random_expression(vars, depth):
     # return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
     return And(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
     
+def random_knowledge(agents, vars, depth, exclude_agent=None):
+    """
+    Generates a random knowledge expression of depth depth.
+    """
+    knowledge_type = random.choice([KnowsThat, KnowsWhether])
+    agent = random.choice(agents)
 
-    
+    while agent == exclude_agent:
+        agent = random.choice(agents)
+
+    if depth == 0:
+        return knowledge_type(agent, random.choice(vars))
+
+    return knowledge_type(agent, random_knowledge(agents, vars, depth - 1, agent))
