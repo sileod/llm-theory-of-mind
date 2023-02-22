@@ -3,11 +3,9 @@ import pandas as pd
 import csv
 import numpy as np
 import re
-from name_generation import n_random_first_names
+from util import n_random_first_names, solve
 from string import Template
-from solver import solve
 from pandarallel import pandarallel
-from util import to_dropbox, get_url_of_file
 
 def get_agents_names(text):
     """
@@ -223,9 +221,3 @@ if __name__ == '__main__':
 
     # Save the dataframe to a jsonl file
     final_df.to_json('/Users/number/Dropbox/Applications/modlog/blablabla.jsonl', orient='records', lines=True)
-
-    # to_dropbox(final_df, '/dataset.jsonl')
-
-    # url = get_url_of_file('/dataset.jsonl')
-
-    # print(url)
