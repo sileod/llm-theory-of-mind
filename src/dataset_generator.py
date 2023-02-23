@@ -93,7 +93,7 @@ internal = {
 setups = [forehead, arm_same_room, internal]
 
 Npb = 10
-Nvariations = 5
+Nvariations = 100
 
 if __name__ == '__main__':
     # Initialize the parallelization
@@ -119,13 +119,28 @@ if __name__ == '__main__':
         setup['agents'] = n_random_first_names(n_agents)
 
         # Generate the variables randomly according to the setup
-        setup['variables'] = [Var(Template(setup['variables_template']).substitute(agent=setup['agents'][i]), i) for i in range(len(setup['agents']))]
+        setup['variables'] = [Var(Template(setup['variables_template']).substitute(agent=setup['agents'][i]), i+1) for i in range(len(setup['agents']))]
 
         # Setting the number of announcements
         setup['n_announcements'] = 2
 
         # Setting random announcements here to keep the same premises for all the variations
         setup['announcements'] = [Expression(Announcement(random.choice([random_expression(setup['variables'], 1), random_knowledge(setup['agents'], setup['variables'], 0)]))) for i in range(setup['n_announcements'])]
+
+        # Checking if announcements cancel each other
+
+        # Instanciating the problem
+        pbcheck = Problem(**setup)
+        # Setting the hypothesis to 0
+        pbcheck.hypothesis = Expression(Var('0', 0))
+        # Solving the problem
+        label = solve(str(pbcheck).replace('VARS ', 'VARS 0,'))
+        # As we never mention the 0 variable in premises, label should be 0
+        # If the label is 1, there is likely a problem in the announcements
+        # If so, we do not keep this problem
+        while label == 1:
+            pbcheck.announcements = [Expression(Announcement(random.choice([random_expression(setup['variables'], 1), random_knowledge(setup['agents'], setup['variables'], 0)]))) for i in range(setup['n_announcements'])]
+            label = solve(str(pbcheck).replace('VARS ', 'VARS 0,'))
 
         # Create variations of the current problem with the same setup to get random hypotheses
         # By doing this, we can hope to get an hypothesis for each label
@@ -166,12 +181,18 @@ if __name__ == '__main__':
     # Solve the problems
     df['label'] = df['problem'].parallel_apply(solve)
 
-    print('SMCDEL problems solved !')
+    print('\nSMCDEL problems solved !')
 
     print('Preparing the dataset')
 
     # Get one problem for each premise/label couple
-    one_of_each = df.groupby(['premise', 'label'], group_keys=True).apply(lambda x: x.sample(1, random_state=42))
+    one_of_each = pd.concat(
+        [df.groupby(['premise', 'label'], group_keys=True).apply(lambda x: x.sample(1, random_state=i)) 
+        for i in range(1000)]
+    )
+
+    one_of_each = one_of_each.drop_duplicates()
+
     one_of_each.rename(columns={'premise': 'prem'}, inplace=True)
 
     # Create the final dataframe
