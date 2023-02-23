@@ -62,6 +62,7 @@ forehead = {
     'hypothesis': None,
     'type': 'visual',
     'observation': '',
+    'name': 'forehead'
 }
 
 arm_same_room = {
@@ -74,7 +75,8 @@ arm_same_room = {
     'n_announcements': 1,
     'hypothesis': None,
     'type': 'visual',
-    'observation': 'all agents are in the same room.'
+    'observation': 'all agents are in the same room.',
+    'name': 'arm_same_room'
 }
 
 internal = {
@@ -87,7 +89,8 @@ internal = {
     'n_announcements': 1,
     'hypothesis': None,
     'type': 'mental',
-    'observation': ''
+    'observation': '',
+    'name': 'internal'
 }
 
 setups = [forehead, arm_same_room, internal]
@@ -162,7 +165,7 @@ if __name__ == '__main__':
             hypothesis = str(pb.hypothesis)
 
             # Create a dataframe with the problem, the premise and the hypothesis
-            df_pb = pd.DataFrame([[smcdel_pb, premise, hypothesis]], columns=['problem', 'premise', 'hypothesis'])
+            df_pb = pd.DataFrame([[smcdel_pb, premise, hypothesis, setup['name']]], columns=['problem', 'premise', 'hypothesis', 'setup'])
 
             # Add the problem to the main dataframe
             df = pd.concat([df, df_pb], ignore_index=True)
@@ -196,7 +199,7 @@ if __name__ == '__main__':
     one_of_each.rename(columns={'premise': 'prem'}, inplace=True)
 
     # Create the final dataframe
-    final_df = pd.DataFrame(columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
+    final_df = pd.DataFrame(columns=['problem', 'premise', 'setup', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
 
     # For each premise, get the true and false hypotheses
     for premises, group in one_of_each.groupby('prem'):
@@ -210,6 +213,7 @@ if __name__ == '__main__':
 
             label = group['label'].values[i]
             problem = group['problem'].values[i]
+            setup = group['setup'].values[i]
 
             if random.choice([True, False]):
                 hypothesis = true_hyp
@@ -218,7 +222,15 @@ if __name__ == '__main__':
                 hypothesis = false_hyp
                 label = 'not_entailment'
 
-            pb_df = pd.DataFrame([[problem, premises, true_hyp, false_hyp, hypothesis, label]], columns=['problem', 'premise', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
+            pb_df = pd.DataFrame([[
+                problem,
+                premises,
+                setup,
+                true_hyp,
+                false_hyp,
+                hypothesis,
+                label
+            ]], columns=['problem', 'premise', 'setup', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
             
             final_df = pd.concat([final_df, pb_df], ignore_index=True)
 
