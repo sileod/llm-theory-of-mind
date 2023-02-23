@@ -253,4 +253,4 @@ if __name__ == '__main__':
     final_df = final_df.drop(columns=['names'])
 
     # Save the dataframe to a jsonl file
-    final_df.to_json('/Users/number/Dropbox/Applications/modlog/blablabla.jsonl', orient='records', lines=True)
+    final_df.to_json('epistemic-logic-reasoning.jsonl', orient='records', lines=True)
