@@ -137,7 +137,7 @@ if __name__ == '__main__':
         label = solve(str(pbcheck).replace('VARS ', 'VARS 0,'))
         # As we never mention the 0 variable in premises, label should be 0
         # If the label is 1, there is likely a problem in the announcements
-        # If so, we do not keep this problem
+        # If so, we generate new announcements until there is no problem
         while label == 1:
             pbcheck.announcements = [Expression(Announcement(random.choice([random_expression(setup['variables'], 1), random_knowledge(setup['agents'], setup['variables'], 0)]))) for i in range(setup['n_announcements'])]
             label = solve(str(pbcheck).replace('VARS ', 'VARS 0,'))
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             percentage = ((generated_problems / (Npb * Nvariations)) * 100)
             if percentage % 10 == 0:
                 print(percentage, '% generated', sep='')
-    
+
     print('SMCDEL problems generated !')
 
     print('Solving SMCDEL problems ...')
