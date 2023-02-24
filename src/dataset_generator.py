@@ -61,7 +61,7 @@ forehead = {
     'n_announcements': 1,
     'hypothesis': None,
     'type': 'visual',
-    'observation': '',
+    'observation': None,
     'name': 'forehead'
 }
 
@@ -89,7 +89,7 @@ internal = {
     'n_announcements': 1,
     'hypothesis': None,
     'type': 'mental',
-    'observation': '',
+    'observation': None,
     'name': 'internal'
 }
 
@@ -159,7 +159,7 @@ if __name__ == '__main__':
             pb.change_format('natural')
 
             # Get the problem in natural language
-            premise  = pb.base_observation + str(pb.law) + pb.observations_to_str() + pb.announcements_to_str()
+            premise  = str(pb.law) + pb.observations_to_str() + pb.announcements_to_str()
 
             # Get the hypothesis
             hypothesis = str(pb.hypothesis)

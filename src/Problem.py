@@ -264,6 +264,9 @@ class Problem:
         result = ''
         if self.format == 'smcdel':
             result += 'OBS '
+        elif self.base_observation != None:
+            return self.base_observation
+
         for agent in range(len(groupby)):
             if self.format == 'smcdel':
                 result += f'{self.agents[agent]}:' + ','.join([self.variables[var].to_smcdel() for var in groupby[agent]]) + ' '
