@@ -160,6 +160,41 @@ class KnowsWhether(Knowledge):
         super().__init__(agent, expr)
         self.symbol = 'knows whether'
 
+class CommonKnowledge:
+    """
+    Represents a common knowledge expression
+    """
+    def __init__(self, agents, expr) -> None:
+        """
+        :param agents: The agents that are sharing the knowledge
+        :param expr: The expression to which the agents have the knowledge
+        """
+        self.agents = agents
+        self.expr = expr
+        self.symbol = ''
+    
+    def to_smcdel(self):
+        return f"({','.join(self.agents)}) comknow {self.symbol} {self.expr.to_smcdel()}"
+
+    def __str__(self) -> str:
+        return f'everyone knows {self.symbol} {self.expr}'
+
+class CommonKnowsWhether(CommonKnowledge):
+    """
+    Represents a knowledge expression of the form "everyone knows whether"
+    """
+    def __init__(self, agents, expr) -> None:
+        super().__init__(agents, expr)
+        self.symbol = 'whether'
+
+class CommonKnowsThat(CommonKnowledge):
+    """
+    Represents a knowledge expression of the form "everyone knows that"
+    """
+    def __init__(self, agents, expr) -> None:
+        super().__init__(agents, expr)
+        self.symbol = 'that'
+
 class Announcement:
     """
     Represents an announcement
@@ -342,11 +377,15 @@ def random_knowledge(agents, vars, depth, exclude_agent=None):
     """
     Generates a random knowledge expression of depth depth.
     """
-    knowledge_type = random.choice([KnowsThat, KnowsWhether])
-    agent = random.choice(agents)
+    knowledge_type = random.choice([KnowsThat, KnowsWhether, CommonKnowsThat, CommonKnowsWhether])
+    
+    if knowledge_type == CommonKnowsWhether or knowledge_type == CommonKnowsThat:
+        agent = agents
+    else:
+        agent = random.choice(agents)
 
     while agent == exclude_agent:
-        agent = random.choice(agents)
+        agent = random.choice(agents)# + ['everyone', 'someone'])
 
     if depth == 0:
         return knowledge_type(agent, random.choice(vars))
