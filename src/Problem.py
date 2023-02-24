@@ -264,8 +264,8 @@ class Problem:
         result = ''
         if self.format == 'smcdel':
             result += 'OBS '
-            result += f'everyone: {len(self.variables) + 1} '
-            result += f'someone: {len(self.variables) + 2} '
+            result += f'everyone: {len(self.variables) + 1} ' # Adding everyone and someone
+            result += f'someone: {len(self.variables) + 2} '  # agents
         elif self.base_observation != None:
             return self.base_observation
 
@@ -297,7 +297,7 @@ class Problem:
 
     def __str__(self):
         if self.format == 'smcdel':
-            result = f'VARS {len(self.variables) + 1},{len(self.variables) + 2},'
+            result = f'VARS {len(self.variables) + 1},{len(self.variables) + 2},' # Adding n+1 and n+2 variables for everyone and someone
             result += ','.join([var.to_smcdel() for var in self.variables]) + ' ' + self.law.expr.to_smcdel() + ' '
         elif self.format == 'natural':
             result += f'{self.law} '
