@@ -264,6 +264,8 @@ class Problem:
         result = ''
         if self.format == 'smcdel':
             result += 'OBS '
+            result += f'everyone: {len(self.variables) + 1} '
+            result += f'someone: {len(self.variables) + 2} '
         elif self.base_observation != None:
             return self.base_observation
 
@@ -295,7 +297,8 @@ class Problem:
 
     def __str__(self):
         if self.format == 'smcdel':
-            result = 'VARS ' + ','.join([var.to_smcdel() for var in self.variables]) + ' ' + self.law.expr.to_smcdel() + ' '
+            result = f'VARS {len(self.variables) + 1},{len(self.variables) + 2},'
+            result += ','.join([var.to_smcdel() for var in self.variables]) + ' ' + self.law.expr.to_smcdel() + ' '
         elif self.format == 'natural':
             result += f'{self.law} '
         result += f'{self.observations_to_str()}'.strip()
