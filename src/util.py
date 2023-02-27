@@ -1,6 +1,7 @@
 import dropbox
 
 import censusname
+from easydict import EasyDict as edict
 
 import requests
 import urllib.parse
@@ -55,6 +56,14 @@ def parse_response(response):
     elif ENTAILMENT in result:
         return 1
     return -2
+
+
+def class_to_dict(x):
+    name=x.__name__
+    x=edict({a:getattr(x,a) for a in dir(x) if not a.startswith('__')})
+    x['name']=name
+    return x
+
 
 def solve(problem):
     headers = {

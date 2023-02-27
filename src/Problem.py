@@ -2,9 +2,6 @@ import random
 import numpy as np
 
 class Expression:
-    """
-    Represents a logical expression
-    """
     def __init__(self, expr, format='smcdel'):
         self.expr = expr
         self.format = format
@@ -15,19 +12,10 @@ class Expression:
         return f'{self.expr}'
 
 class Operator:
-    """
-    Represents a logical operator
-    """
     def __init__(self, symbol):
-        """
-        :param symbol: The symbol of the operator
-        """
         self.symbol = symbol
 
 class UnaryOperator(Operator):
-    """
-    Represents a unary logical operator
-    """
     def __init__(self, symbol, expr):
         super().__init__(symbol)
         self.expr = expr
@@ -39,9 +27,6 @@ class UnaryOperator(Operator):
         return f'{self.smcdel_symbol} {self.expr.to_smcdel()}'
 
 class Not(UnaryOperator):
-    """
-    Represents a logical negation
-    """
     def __init__(self, expr):
         super().__init__('not', expr)
         self.smcdel_symbol = '~'
@@ -51,53 +36,30 @@ class Not(UnaryOperator):
         return str(self.expr).replace(' is ', ' is not ')
 
 class BinaryOperator(Operator):
-    """
-    Represents a binary logical operator
-    """
     def __init__(self, symbol, l_expr, r_expr):
-        """
-        :param symbol: The symbol of the operator
-        :param l_expr: The left expression
-        :param r_expr: The right expression
-        """
         super().__init__(symbol)
         self.l = l_expr
         self.r = r_expr
 
     def __str__(self):
+        if str(self.l)==str(self.r):
+            return str(self.l) # Duh
         return f'{self.l} {self.symbol} {self.r}'
 
     def to_smcdel(self):
         return f'{self.l.to_smcdel()} {self.smcdel_symbol} {self.r.to_smcdel()}'
 
 class Or(BinaryOperator):
-    """
-    Represents a logical disjunction
-    """
     def __init__(self, l_expr, r_expr):
-        """
-        :param l_expr: The left expression
-        :param r_expr: The right expression
-        """
         super().__init__('or', l_expr, r_expr)
         self.smcdel_symbol = '|'
 
 class And(BinaryOperator):
-    """
-    Represents a logical conjunction
-    """
     def __init__(self, l_expr, r_expr):
-        """
-        :param l_expr: The left expression
-        :param r_expr: The right expression
-        """
         super().__init__('and', l_expr, r_expr)
         self.smcdel_symbol = '&'
 
 class Var:
-    """
-    Represents a variable
-    """
     def __init__(self, name, id):
         """
         :param name: The name of the variable. We use it to indicate what the variable represents. (e.g. 'Alice is muddy')
@@ -116,14 +78,7 @@ class Var:
         return f'{self.id}'
 
 class Knowledge:
-    """
-    Represents a knowledge expression
-    """
     def __init__(self, agent, expr):
-        """
-        :param agent: The agent that has the knowledge
-        :param expr: The expression to which the agent has the knowledge
-        """
         self.agent = agent
         self.expr = expr
         self.symbol = ''
@@ -201,31 +156,15 @@ class Law:
         return f'LAW {self.expr.to_smcdel()}'
 
 class Problem:
-    """
-    Represents a problem
-    """
     def __init__(self, **setup):
-
-        # The format to display the problem in
         self.format = 'smcdel'
-
-        # The variables in the problem
         self.variables = setup['variables']
-
-        # The agents in the problem
         self.agents = setup['agents']
-
-        # The number of announcements in the problem
         self.n_announcements = setup['n_announcements']
-
-        # The base observation of the problem
         self.base_observation = setup['observation']
-
-        # The law of the problem
         self.law = setup['law']
         if self.law is None:
-            # If no law is given, we create a random law
-            self.law = Expression(Law(random_expression(self.variables, 1)))
+            self.law = Expression(Law(self.random_expression(1)))
         
         # The observations of the problem
         self.observations = setup['matrix']
@@ -236,13 +175,19 @@ class Problem:
         self.announcements = setup['announcements']
         if self.announcements is None:
             # If no announcements are given, we create random announcements
-            self.announcements = [Expression(Announcement(random.choice([random_expression(self.variables, 1), random_knowledge(self.agents, self.variables, 0)]))) for i in range(self.n_announcements)]
+            self.announcements = [Expression(Announcement(random.choice([
+                self.random_expression(1), 
+                self.random_knowledge(0)]))) for i in range(self.n_announcements)]
 
         # The hypothesis of the problem
         self.hypothesis = setup['hypothesis']
         if self.hypothesis is None:
             # If no hypothesis is given, we create a random hypothesis
-            self.hypothesis = Expression(random.choice([KnowsThat, KnowsWhether])(random.choice(self.agents), random_expression(self.variables, 0)))
+            self.hypothesis = Expression(
+                random.choice([KnowsThat, KnowsWhether])(
+                    random.choice(self.agents),
+                    self.random_expression(0))
+                )
 
 
     def get_vars(self):
@@ -306,46 +251,39 @@ class Problem:
             result += f'{self.announcements_to_str()} {self.hypothesis}'
         return result
 
-def show_pb(p):
-    """
-    Returns a string representation of the problem
-    :param p: The problem
-    :return: The string representation of the problem
-    """
-    print(p)
-    print()
-    print('variables : ', p.get_vars())
-    print('agents :', p.agents)
-    print('law :', p.law)
-    print('observations :', p.observations_to_str())
-    print('announcements :', p.announcements_to_str())
-    print('hypothesis :', p.hypothesis)
+    def show_pb(self):
+        """
+        Returns a string representation of the problem
+        :param p: The problem
+        :return: The string representation of the problem
+        """
+        print(p)
+        print()
+        print('variables : ', p.get_vars())
+        print('agents :', p.agents)
+        print('law :', p.law)
+        print('observations :', p.observations_to_str())
+        print('announcements :', p.announcements_to_str())
+        print('hypothesis :', p.hypothesis)
 
-def random_expression(vars, depth):
-    """
-    Generates a random logical expression of depth depth.
-    """
+    def random_expression(self, depth):
+        if depth == 0:
+            # 50% chance of negation
+            if random.random() < 0.5:
+                return Not(random.choice(self.variables))
+            return random.choice(self.variables)
 
-    if depth == 0:
-        # 50% chance of negation
-        if random.random() < 0.5:
-            return Not(random.choice(vars))
-        return random.choice(vars)
-
-    # return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
-    return And(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
+        # return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
+        return And(self.random_expression(depth - 1), self.random_expression(depth - 1))
     
-def random_knowledge(agents, vars, depth, exclude_agent=None):
-    """
-    Generates a random knowledge expression of depth depth.
-    """
-    knowledge_type = random.choice([KnowsThat, KnowsWhether])
-    agent = random.choice(agents)
+    def random_knowledge(self, depth, exclude_agent=None):
+        knowledge_type = random.choice([KnowsThat, KnowsWhether])
+        agent = random.choice(self.agents)
 
-    while agent == exclude_agent:
-        agent = random.choice(agents)
+        while agent == exclude_agent:
+            agent = random.choice(self.agents)
 
-    if depth == 0:
-        return knowledge_type(agent, random.choice(vars))
+        if depth == 0:
+            return knowledge_type(agent, random.choice(self.variables))
 
-    return knowledge_type(agent, random_knowledge(agents, vars, depth - 1, agent))
+        return knowledge_type(agent, self.random_knowledge(depth - 1, agent))
