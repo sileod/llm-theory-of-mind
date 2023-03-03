@@ -1,11 +1,12 @@
 from Problem import *
-import pandas as pd
+import pandit as pd
 import numpy as np
 import random
 import re
 from util import n_random_first_names, solve, class_to_dict
 from string import Template
 from pandarallel import pandarallel
+from tqdm.auto import tqdm
 
 def get_agents_names(text):
     """
@@ -61,6 +62,12 @@ class forehead(Setup):
     variables_template="$agent's forehead  is muddy"
     matrix= np.ones((n_agents, n_agents)) - np.eye(n_agents)
     type='visual'
+
+class forehead_mirror(Setup):
+    observation='Everyone is visible to others. There is a mirror in the room. '
+    variables_template="$agent's forehead  is muddy"
+    matrix= np.ones((n_agents, n_agents))
+    type='visual'
     
 class arm(forehead):
     variables_template="$agent's arm is muddy"
@@ -72,11 +79,15 @@ class internal(Setup):
     matrix= np.eye(n_agents) 
     type='mental'
 
-setups = [forehead, arm, internal]
+class explicit(Setup):
+    variables_template='$agent is working'
+    matrix=None
+
+setups = [forehead, arm, internal]+[explicit]*40+[forehead]*10
 setups = [class_to_dict(x) for x in setups]
 
 
-def generate(Npb = 10, Nvariations = 100):
+def generate(Npb = 1000, Nvariations = 40):
     # Initialize the parallelization
     # It is used to solve the problems
     pandarallel.initialize(verbose=0, progress_bar=False, nb_workers=8)
@@ -85,7 +96,7 @@ def generate(Npb = 10, Nvariations = 100):
     df = pd.DataFrame(columns=['problem', 'premise', 'hypothesis'])
 
     # Generate the problems
-    for _ in range(Npb):
+    for _ in tqdm(range(Npb)):
 
         setup = np.random.choice(setups)
         setup['agents'] = n_random_first_names(n_agents)
@@ -128,51 +139,27 @@ def generate(Npb = 10, Nvariations = 100):
             df_pb = pd.DataFrame([[smcdel_pb, premise, hypothesis, setup['name']]], columns=['problem', 'premise', 'hypothesis', 'setup'])
             df = pd.concat([df, df_pb], ignore_index=True)
         
-    df['label'] = df['problem'].parallel_apply(solve)
+    df['label'] = df['problem'].apply(solve)
+    df=df[df.label>-1]
+    final_df=df.groupby('premise').agg(list).reset_index().\
+        sieve(label=lambda x:len(set(x))>1)
 
-    one_of_each = pd.concat(
-        [df.groupby(['premise', 'label'], group_keys=True).apply(lambda x: x.sample(1, random_state=i)) 
-        for i in range(1000)]
-    )
+    def sample(x):
+        zeros=[i for i,val in enumerate(x.label) if val==0]
+        ones =[i for i,val in enumerate(x.label) if val==1]
+        x['true_hypothesis']=x.hypothesis[random.choice(ones)]
+        x['false_hypothesis']=x.hypothesis[random.choice(zeros)]
+        x['setup']=x['setup'][0]
+        if random.choice([0, 1]):
+            x['hypothesis'] = x['true_hypothesis']
+            x['label'] = 'entailment'
+        else:
+            x['hypothesis'] = x['false_hypothesis']
+            x['label'] = 'not_entailment'
+        return x
 
-    one_of_each = one_of_each.drop_duplicates()
+    final_df=final_df.apply(sample,axis=1)
 
-    one_of_each.rename(columns={'premise': 'prem'}, inplace=True)
-
-    final_df = pd.DataFrame(columns=['problem', 'premise', 'setup', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
-
-    # For each premise, get the true and false hypotheses
-    for premises, group in one_of_each.groupby('prem'):
-        true_hyps = group[group['label'] == 1]['hypothesis']
-        false_hyps = group[group['label'] == 0]['hypothesis']
-
-        for i in range(min(len(true_hyps), len(false_hyps))):
-
-            true_hyp = true_hyps.values[i]
-            false_hyp = false_hyps.values[i]
-
-            label = group['label'].values[i]
-            problem = group['problem'].values[i]
-            setup = group['setup'].values[i]
-
-            if random.choice([True, False]):
-                hypothesis = true_hyp
-                label = 'entailment'
-            else:
-                hypothesis = false_hyp
-                label = 'not_entailment'
-
-            pb_df = pd.DataFrame([[
-                problem,
-                premises,
-                setup,
-                true_hyp,
-                false_hyp,
-                hypothesis,
-                label
-            ]], columns=['problem', 'premise', 'setup', 'true_hypothesis', 'false_hypothesis', 'hypothesis', 'label'])
-            
-            final_df = pd.concat([final_df, pb_df], ignore_index=True)
 
     # Anonymize the names and deduplicate
     final_df['names'] = final_df['premise'].apply(get_agents_names)

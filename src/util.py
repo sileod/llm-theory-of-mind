@@ -46,7 +46,11 @@ TAUTOLOGY = '\\top'
 ENTAILMENT = '\\vDash'
 NOT_ENTAILMENT = '\\not\\vDash'
 
+SANITY_ERROR = "Sanity error"
+
 def parse_response(response):
+    if SANITY_ERROR in response:
+        return -2
     result = re.search(r'(?s)<p>.*</p>', response).group(0)
 
     if TAUTOLOGY in result:
@@ -86,7 +90,9 @@ def solve(problem):
     data = 'smcinput=' + urllib.parse.quote(problem)
 
     response = requests.post('https://w4eg.de/malvin/illc/smcdelweb/check', headers=headers, data=data)
-
-    label = parse_response(response.text)
-
+    try:
+        label = parse_response(response.text)
+    except:
+        print(problem)
+        return -1
     return label

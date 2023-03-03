@@ -191,15 +191,9 @@ class Problem:
 
 
     def get_vars(self):
-        """
-        :return: The variables in the problem
-        """
         return self.variables
 
     def observations_to_str(self):
-        """
-        :return: The observations of the problem as a string
-        """
         # We get the indices of the non-zero elements in the matrix
         # And we group them by agent
         mx = np.transpose(self.observations.nonzero())
@@ -252,13 +246,7 @@ class Problem:
         return result
 
     def show_pb(self):
-        """
-        Returns a string representation of the problem
-        :param p: The problem
-        :return: The string representation of the problem
-        """
         print(p)
-        print()
         print('variables : ', p.get_vars())
         print('agents :', p.agents)
         print('law :', p.law)
