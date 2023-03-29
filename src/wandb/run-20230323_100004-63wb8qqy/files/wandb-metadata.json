@@ -1,0 +1,244 @@
+{
+    "os": "Linux-5.10.0-21-amd64-x86_64-with-glibc2.31",
+    "python": "3.10.9",
+    "heartbeatAt": "2023-03-23T09:00:05.821730",
+    "startedAt": "2023-03-23T09:00:04.684495",
+    "docker": null,
+    "cuda": "10.1.243",
+    "args": null,
+    "state": "running",
+    "program": "<python with no main file>",
+    "git": {
+        "remote": "https://github.com/antoinelrnld/modlog/",
+        "commit": "bc0a238278828672616a47c2d14e9c06c8e03fd6"
+    },
+    "email": null,
+    "root": "/mnt/nfs_share_magnet2/dsileo/libs/modlog",
+    "host": "magnet-magnet6",
+    "username": "dsileo",
+    "executable": "/mnt/nfs_share_magnet2/dsileo/miniconda3/bin/python",
+    "cpu_count": 20,
+    "cpu_count_logical": 40,
+    "cpu_freq": {
+        "current": 832.8021500000001,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 800.185,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.316,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.494,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.221,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.532,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.372,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.454,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.497,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.349,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.424,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.17,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.462,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.451,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.515,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.519,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.316,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.589,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1006.749,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.571,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.587,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.509,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.383,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.373,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.345,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.451,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.479,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.592,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.223,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.182,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.569,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.324,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.383,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.463,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 799.475,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 799.353,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.476,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.272,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 857.56,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.374,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 800.356,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "total": 1823.1678428649902,
+        "used": 1526.580192565918
+    },
+    "gpu": "Tesla P100-PCIE-12GB",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "Tesla P100-PCIE-12GB",
+            "memory_total": 12790923264
+        }
+    ],
+    "memory": {
+        "total": 62.468318939208984
+    }
+}

@@ -1,5 +1,12 @@
 import random
 import numpy as np
+randint = np.random.randint
+import inflect
+
+number_to_words = inflect.engine().number_to_words
+
+def replace_last_occurrence(s, x, replacement):
+    return s[::-1].replace(x[::-1], replacement[::-1], 1)[::-1]
 
 class Expression:
     def __init__(self, expr, format='smcdel'):
@@ -58,6 +65,32 @@ class And(BinaryOperator):
     def __init__(self, l_expr, r_expr):
         super().__init__('and', l_expr, r_expr)
         self.smcdel_symbol = '&'
+
+
+class Someone(Operator):
+    def __init__(self, variables):
+        self.variables=variables
+
+    def to_smcdel(self):
+        y = "|".join([x.to_smcdel() for x in self.variables])
+        return f'({y})'
+
+    def __str__(self):
+        return str(self.variables[0]).replace("Agenta","someone")
+
+class Everyone(Someone):
+    def to_smcdel(self):
+        y = "&".join([x.to_smcdel() for x in self.variables])
+        return f'({y})'
+    def __str__(self):
+        return str(self.variables[0]).replace("Agenta","everyone")
+
+class NotEveryone(Someone):
+    def to_smcdel(self):
+        y="&".join([x.to_smcdel() for x in self.variables])
+        return f"(~({y}))"
+    def __str__(self):
+        return str(self.variables[0]).replace("Agenta","not everyone")
 
 class Var:
     def __init__(self, name, id):
@@ -158,26 +191,26 @@ class Law:
 class Problem:
     def __init__(self, **setup):
         self.format = 'smcdel'
-        self.variables = setup['variables']
-        self.agents = setup['agents']
-        self.n_announcements = setup['n_announcements']
-        self.base_observation = setup['observation']
-        self.law = setup['law']
+        for k,v in setup.items():
+            setattr(self,k,v)
+
         if self.law is None:
-            self.law = Expression(Law(self.random_expression(1)))
+            self.law = Expression(Law(self.random_expression(self.law_depth)))
         
         # The observations of the problem
         self.observations = setup['matrix']
         if self.observations is None:
-            self.observations = np.random.randint(2, size=(len(self.agents), len(self.variables)))
+            self.observations = randint(2, size=(len(self.agents), len(self.variables)))
+
+
+        self.quantifiers = [self.someone(),self.everyone(),self.not_everyone()]
 
         # The announcements of the problem
         self.announcements = setup['announcements']
         if self.announcements is None:
-            # If no announcements are given, we create random announcements
             self.announcements = [Expression(Announcement(random.choice([
-                self.random_expression(1), 
-                self.random_knowledge(0)]))) for i in range(self.n_announcements)]
+                self.random_expression(self.announcement_depth+1), 
+                self.random_knowledge(self.announcement_depth)]))) for i in range(self.n_announcements)]
 
         # The hypothesis of the problem
         self.hypothesis = setup['hypothesis']
@@ -186,9 +219,8 @@ class Problem:
             self.hypothesis = Expression(
                 random.choice([KnowsThat, KnowsWhether])(
                     random.choice(self.agents),
-                    self.random_expression(0))
-                )
-
+                    self.random_knowledge(self.hypothesis_depth)
+                ))
 
     def get_vars(self):
         return self.variables
@@ -198,19 +230,22 @@ class Problem:
         # And we group them by agent
         mx = np.transpose(self.observations.nonzero())
         groupby = np.split(mx[:, 1], np.unique(mx[:,0], return_index=True)[1][1:])
-
+        prefix = f"There are {number_to_words(len(self.agents))} persons. "
         # We create the string
         result = ''
         if self.format == 'smcdel':
             result += 'OBS '
         elif self.base_observation != None:
-            return self.base_observation
+            return prefix + self.base_observation
 
+        if self.format!='smcdel':
+            result=f'{prefix} {result}'
         for agent in range(len(groupby)):
             if self.format == 'smcdel':
                 result += f'{self.agents[agent]}:' + ','.join([self.variables[var].to_smcdel() for var in groupby[agent]]) + ' '
             else:
                 result += f'{self.agents[agent]} knows whether ' + ', whether '.join([str(self.variables[var]) for var in groupby[agent]]) + '. '
+                result = replace_last_occurrence(result,', whether',' and whether')
         return result
 
     def announcements_to_str(self):
@@ -254,12 +289,17 @@ class Problem:
         print('announcements :', p.announcements_to_str())
         print('hypothesis :', p.hypothesis)
 
+    def someone(self): return Someone(self.variables)
+    def everyone(self): return Everyone(self.variables)
+    def not_everyone(self): return NotEveryone(self.variables)
+
     def random_expression(self, depth):
         if depth == 0:
             # 50% chance of negation
+            random_var = random.choice(self.variables+self.quantifiers)
             if random.random() < 0.5:
-                return Not(random.choice(self.variables))
-            return random.choice(self.variables)
+                return Not(random_var)
+            return random_var
 
         # return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
         return And(self.random_expression(depth - 1), self.random_expression(depth - 1))
@@ -272,6 +312,6 @@ class Problem:
             agent = random.choice(self.agents)
 
         if depth == 0:
-            return knowledge_type(agent, random.choice(self.variables))
+            return knowledge_type(agent, random.choice(self.variables+self.quantifiers))
 
         return knowledge_type(agent, self.random_knowledge(depth - 1, agent))

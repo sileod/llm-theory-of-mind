@@ -1,0 +1,115 @@
+***** Running Evaluation *****
+  Num examples = 51475
+  Batch size = 8
+Training completed. Do not forget to share your model on huggingface.co/models =)
+Model config DebertaV2Config {
+  "_name_or_path": "microsoft/deberta-v3-small",
+  "attention_probs_dropout_prob": 0.1,
+  "classifiers_size": [
+    2
+  ],
+  "hidden_act": "gelu",
+  "hidden_dropout_prob": 0.1,
+  "hidden_size": 768,
+  "id2label": {
+    "0": 0,
+    "1": 1
+  },
+  "initializer_range": 0.02,
+  "intermediate_size": 3072,
+  "label2id": {
+    "0": 0,
+    "1": 1
+  },
+  "layer_norm_eps": 1e-07,
+  "max_position_embeddings": 512,
+  "max_relative_positions": -1,
+  "model_type": "deberta-v2",
+  "norm_rel_ebd": "layer_norm",
+  "num_attention_heads": 12,
+  "num_hidden_layers": 6,
+  "pad_token_id": 0,
+  "pooler_dropout": 0,
+  "pooler_hidden_act": "gelu",
+  "pooler_hidden_size": 768,
+  "pos_att_type": [
+    "p2c",
+    "c2p"
+  ],
+  "position_biased_input": false,
+  "position_buckets": 256,
+  "relative_attention": true,
+  "share_att_key": true,
+  "tasks": [
+    ""
+  ],
+  "transformers_version": "4.26.1",
+  "type_vocab_size": 0,
+  "vocab_size": 128100
+}
+Disabling tokenizer parallelism, we're using DataLoader multithreading already
+***** Running Evaluation *****
+  Num examples = 51475
+  Batch size = 8
+> /tmp/ipykernel_3313377/201479856.py(26)sample()
+     24     reorder = np.argsort(-np.array(x.difficulty)).tolist()
+     25     for c in x.index:
+---> 26         x[c]=x[c][reorder]
+     27
+     28     zeros=[i for i,val in enumerate(x.label) if val==0]
+'There are five persons. Everyone is visible to others. It is publicly announced that someone is thirsty.'
+> /tmp/ipykernel_3313377/201479856.py(26)sample()
+     24     reorder = np.argsort(-np.array(x.difficulty)).tolist()
+     25     for c in x.index:
+---> 26         x[c]=x[c][reorder]
+     27
+     28     zeros=[i for i,val in enumerate(x.label) if val==0]
+premise
+--KeyboardInterrupt--
+KeyboardInterrupt: Interrupted by user
+> /tmp/ipykernel_3313377/2936246672.py(37)sample()
+     35
+     36     for c in meta:
+---> 37         x[c]=[x[c][ones[0]],x[c][ones[0]]]
+     38         if x[c][0]==x[c][1]:
+     39             x[c]=x[c][0]
+[1, 4, 5, 6, 11, 13, 18, 19, 20, 22, 24, 25, 26, 27, 31, 34, 36, 39, 40, 42, 45, 48, 51, 53, 54, 55, 57, 59, 70, 74, 77, 78, 79, 80, 81, 84, 85, 86, 93, 95, 102, 103, 105, 109, 113, 120, 121, 122, 130, 132, 135, 139, 140, 141, 142, 144, 147, 148, 157, 164, 167, 169, 172, 173, 177, 179, 180, 183, 184, 186, 187, 191, 194, 200, 201, 202, 205, 210, 212, 214, 216, 218, 219, 220, 221, 223, 224, 225, 229]
+5
+n_agents
+--KeyboardInterrupt--
+KeyboardInterrupt: Interrupted by user
+> /mnt/nfs_share_magnet2/dsileo/miniconda3/lib/python3.10/site-packages/ipykernel/kernelbase.py(1225)_input_request()
+   1223                 # re-raise KeyboardInterrupt, to truncate traceback
+   1224                 msg = "Interrupted by user"
+-> 1225                 raise KeyboardInterrupt(msg) from None
+   1226             except Exception:
+   1227                 self.log.warning("Invalid Message:", exc_info=True)
+--KeyboardInterrupt--
+KeyboardInterrupt: Interrupted by user
+> /tmp/ipykernel_3313377/2936246672.py(37)sample()
+     35
+     36     for c in meta:
+---> 37         x[c]=[x[c][ones[0]],x[c][ones[0]]]
+     38         if x[c][0]==x[c][1]:
+     39             x[c]=x[c][0]
+[1]
+5
+premise               There are five persons. Everyone is visible to...
+smcdel_problem        VARS 1,2,3,4,5 LAW Top OBS Agenta:1 Agentb:2 A...
+n_announcements                                                       0
+pbcheck               VARS 0,1,2,3,4,5 LAW Top OBS Agenta:1 Agentb:2...
+hypothesis            [Dorothy can now know that Dorothy can know th...
+setup                                                          internal
+hypothesis_depth                                                      0
+n_agents                                                              5
+label                 [0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, ...
+names                 [[Dorothy, Sean, Dennis, Kelly, Victoria], [Na...
+random                [0, 2, 2, 3, 3, 5, 0, 4, 3, 2, 1, 2, 4, 0, 3, ...
+deberta_pred          [0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, ...
+deberta_confidence    [0.9999172687530518, 0.9933651089668274, 0.802...
+difficulty            [8.273124694824219e-05, 0.006634891033172607, ...
+true_hypothesis       Jonathan can now know whether Naomi can know w...
+false_hypothesis      Dorothy can now know that Dorothy can know tha...
+Name: 0, dtype: object
+--KeyboardInterrupt--
+KeyboardInterrupt: Interrupted by user

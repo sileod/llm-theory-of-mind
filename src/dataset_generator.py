@@ -1,154 +1,161 @@
-from Problem import *
+from Problem import Problem, Var, Expression, Announcement, Law
 import pandit as pd
 import numpy as np
 import random
-import re
+import re, string
 from util import n_random_first_names, solve, class_to_dict
 from string import Template
 from pandarallel import pandarallel
 from tqdm.auto import tqdm
+tqdm.pandas()
+from sorcery import dict_of
+import copy
+import jinja2
+from dataclasses import dataclass
+randint = np.random.randint
 
-def get_agents_names(text):
-    """
-    Gets the names of the agents in the text
-    :param text: The text where the names will be searched
-    :return: A dictionary with the names as keys and the agent0, agent1, agent2, ... as values
-    """
-    # We could have used set() but we want to keep the order
-    words = re.findall('[A-Z][a-z]+', text)
 
-    # We create our own set to keep the order
-    unique_names = {}
-    agent = 0
+def name_agents(s,agent_names):
+    agents=[f'Agent{i}' for i in string.ascii_lowercase[:len(agent_names)]]
+    for id, name in zip(agents, agent_names):
+        s=s.replace(id, name)
+    assert "Agent" not in s
+    return s 
 
-    for name in words:
-        # If the name is not in the set, we add it
-        if name not in unique_names:
-            # We bind the name to the agent number
-            unique_names[name] = f'agent{agent}'
-            agent += 1
-    return unique_names
+def postprocess(s):
+    s=s.replace('.', '. ')
+    s=".".join(s.split('.')).replace('. .','.')
+    s=" ".join(s.split())
+    if not s.endswith('.'):
+        s=s+'.'
+    return s
 
-def replace_names(text, names, anonymize=True):
-    """
-    Replaces the names in the text by agent0, agent1, agent2, ... when anonymize is True
-    Replaces the agent0, agent1, agent2, ... by the names in the text when anonymize is False
-    :param text: The text where the names will be replaced
-    :param names: A dictionary with the names as keys and the agent0, agent1, agent2, ... as values
-    :param anonymize: If True, the names will be replaced by agent0, agent1, agent2, ..., if False, the agent0, agent1, agent2, ... will be replaced by the names
-    :return: The text with the names replaced
-    """
-    for name in names:
-        if anonymize:
-            text = text.replace(name, names[name])
-        else:
-            text = text.replace(names[name], name)
-    return text
+def postprocess_hyp(s, seed=None):
+    random.seed(seed)
+    s=s.replace('knows', jinja2.Template(
+        "{{ ['can know'] | random }}"
+        ).render())
+    s=s.replace('can know', jinja2.Template(
+        "{{ ['can now know'] | random }}"
+        ).render(),1)
+    return s
 
-n_agents = 3
 
+@dataclass
 class Setup:
+    n_announcements:int=3
+    n_agents:int=3
+    hypothesis_depth:int=0
+    announcement_depth:int=1
     variables=None
     agents=None
     announcements= None
-    n_announcements= 1
     hypothesis= None
     type=None
-    observation=None
-    law=None#Expression(Law('Top'))
-    
-class forehead(Setup):
-    observation='Everyone is visible to others. '
-    variables_template="$agent's forehead  is muddy"
-    matrix= np.ones((n_agents, n_agents)) - np.eye(n_agents)
-    type='visual'
+    base_observation=None
+    law=Expression(Law('Top'))
 
-class forehead_mirror(Setup):
-    observation='Everyone is visible to others. There is a mirror in the room. '
+
+    def __post_init__(self):
+        self.agents = [f'Agent{string.ascii_lowercase[i]}' for i in range(self.n_agents)]
+
+
+clique = "Everyone is visible to others."
+
+class forehead(Setup):
+    base_observation = clique
     variables_template="$agent's forehead  is muddy"
-    matrix= np.ones((n_agents, n_agents))
     type='visual'
-    
-class arm(forehead):
+    def __post_init__(self):
+        super().__post_init__()
+        n_agents=self.n_agents
+        self.matrix= np.ones((n_agents, n_agents)) - np.eye(n_agents)
+
+class forehead_mirror(forehead):
+    base_observation=f'{clique} There is a mirror in the room. '
+    def __post_init__(self):
+        super().__post_init__()
+        n_agents=self.n_agents
+        self.matrix= np.ones((n_agents, n_agents))
+
+class arm(forehead_mirror):
+    base_observation=clique
     variables_template="$agent's arm is muddy"
-    matrix= np.ones((n_agents, n_agents)) 
 
 class internal(Setup):
-    observation='Everyone is visible to others. '
+    base_observation=clique
     variables_template='$agent is thirsty'
-    matrix= np.eye(n_agents) 
+    def __post_init__(self):
+        super().__post_init__()
+        self.matrix= np.eye(self.n_agents)
     type='mental'
 
 class explicit(Setup):
-    variables_template='$agent is working'
+    variables_template='$agent is muddy'
     matrix=None
 
-setups = [forehead, arm, internal]+[explicit]*40+[forehead]*10
-setups = [class_to_dict(x) for x in setups]
 
-
-def generate(Npb = 1000, Nvariations = 40):
+def generate(Npb = 1000, Nvariations = 50, scale=5,hypothesis_depth=1):
     # Initialize the parallelization
     # It is used to solve the problems
-    pandarallel.initialize(verbose=0, progress_bar=False, nb_workers=8)
+    pandarallel.initialize(verbose=0, progress_bar=True, nb_workers=8)
 
     # Create the dataframe
     df = pd.DataFrame(columns=['problem', 'premise', 'hypothesis'])
 
+    problems=[]
     # Generate the problems
     for _ in tqdm(range(Npb)):
-
-        setup = np.random.choice(setups)
-        setup['agents'] = n_random_first_names(n_agents)
+        setups = [forehead, forehead_mirror,  arm, internal]+[explicit]*3
+        setups = [class_to_dict(x(
+            n_agents=randint(2,scale),
+            n_announcements=scale,
+            hypothesis_depth=randint(0,hypothesis_depth),
+        )) for x in setups]
+        setup = copy.deepcopy(np.random.choice(setups))
+        setup['n_announcements'] =n_announcements= randint(0,setup['n_announcements'])
         setup['variables'] = [Var(Template(setup['variables_template']).substitute(agent=setup['agents'][i]), i+1) for i in range(len(setup['agents']))]
         base_pb = Problem(**setup)
-        setup['n_announcements'] = 2
-        setup['announcements'] = [Expression(Announcement(random.choice([
+        setup['announcements'] = [Expression(Announcement(base_pb.someone()))]+[Expression(Announcement(random.choice([
             base_pb.random_expression(1), base_pb.random_knowledge(0)])))
-            for i in range(setup['n_announcements'])
+            for _ in range(setup['n_announcements'])
         ]
 
-        # Instanciating the problem
         pbcheck = Problem(**setup)
         pbcheck.hypothesis = Expression(Var('0', 0))
-        label = solve(str(pbcheck).replace('VARS ', 'VARS 0,'))
-        # As we never mention the 0 variable in premises, label should be 0
-        # If the label is 1, there is likely a problem in the announcements
-        # If so, we generate new announcements until there is no problem
-        while label == 1:
-            pbcheck.announcements = [Expression(Announcement(random.choice([
-                base_pb.random_expression(1), 
-                base_pb.random_knowledge(0)]))) for i in range(setup['n_announcements'])]
-            label = solve(str(pbcheck).replace('VARS ', 'VARS 0,'))
+        pbcheck = str(pbcheck).replace('VARS ', 'VARS 0,')
 
-        # Create variations of the current problem with the same setup to get random hypotheses
-        # By doing this, we can hope to get an hypothesis for each label
         for _ in range(Nvariations):
-
-            # Creating the problem
-            pb = Problem(**setup)
-
-            # Get the problem in smcdel format
-            smcdel_pb = str(pb)
+            pb = Problem(**setup) # Random hypothesis !
+            smcdel_problem = str(pb)
             pb.change_format('natural')
             premise  = pb.observations_to_str() + str(pb.law) + pb.announcements_to_str()
-            premise=premise.replace('.', '. ').replace('  ',' ')
             hypothesis = str(pb.hypothesis)
-
             # Create a dataframe with the problem, the premise and the hypothesis
-            df_pb = pd.DataFrame([[smcdel_pb, premise, hypothesis, setup['name']]], columns=['problem', 'premise', 'hypothesis', 'setup'])
-            df = pd.concat([df, df_pb], ignore_index=True)
-        
-    df['label'] = df['problem'].apply(solve)
+            problems+=[dict_of(smcdel_problem,n_announcements,pbcheck,premise,hypothesis,setup=setup['name'],
+             hypothesis_depth=setup['hypothesis_depth'],   
+             n_agents=setup['n_agents'])]
+
+    df = pd.DataFrame(problems)
+    pb = df[['pbcheck']].drop_duplicates().set_index('pbcheck')
+    pb['valid']=list(pd.Series(pb.index).parallel_apply(solve))
+    valid = pb['valid'].to_dict()
+    df=df[df.pbcheck.map(lambda x: not valid[x])]
+
+    df['label'] = df['smcdel_problem'].parallel_apply(solve)
     df=df[df.label>-1]
-    final_df=df.groupby('premise').agg(list).reset_index().\
+    df=df.groupby('premise').agg(list).reset_index().\
         sieve(label=lambda x:len(set(x))>1)
 
     def sample(x):
         zeros=[i for i,val in enumerate(x.label) if val==0]
         ones =[i for i,val in enumerate(x.label) if val==1]
-        x['true_hypothesis']=x.hypothesis[random.choice(ones)]
-        x['false_hypothesis']=x.hypothesis[random.choice(zeros)]
+
+        heuristic = lambda x: random.random()+(x.count('whether')*+0.5)
+        biased_sample = lambda x: sorted(x, key=heuristic)[0]
+
+        x['true_hypothesis']=biased_sample([x.hypothesis[i] for i in ones])
+        x['false_hypothesis']=biased_sample([x.hypothesis[i] for i in zeros])
         x['setup']=x['setup'][0]
         if random.choice([0, 1]):
             x['hypothesis'] = x['true_hypothesis']
@@ -158,19 +165,21 @@ def generate(Npb = 1000, Nvariations = 40):
             x['label'] = 'not_entailment'
         return x
 
-    final_df=final_df.apply(sample,axis=1)
-
-
-    # Anonymize the names and deduplicate
-    final_df['names'] = final_df['premise'].apply(get_agents_names)
-    final_df['premise'] = final_df.apply(lambda x: replace_names(x['premise'], x['names'], anonymize=True), axis=1)
-    final_df['hypothesis'] = final_df.apply(lambda x: replace_names(x['hypothesis'], x['names'], anonymize=True), axis=1)
-    final_df = final_df.drop_duplicates(subset=['premise', 'hypothesis']).reset_index(drop=True)
-
+    df=df.explode(['smcdel_problem','pbcheck','hypothesis','label','hypothesis_depth','setup'])
+    #df=df.apply(sample,axis=1)
+    df=df.drop_duplicates(subset=['premise', 'hypothesis']).reset_index(drop=True)
     # De-anonymize the names
-    final_df['premise'] = final_df.apply(lambda x: replace_names(x['premise'], x['names'], anonymize=False), axis=1)
-    final_df['hypothesis'] = final_df.apply(lambda x: replace_names(x['hypothesis'], x['names'], anonymize=False), axis=1)
-    final_df = final_df.drop(columns=['names'])
+    for k in ['n_announcements','n_agents']:
+        df[k]=df[k].map(lambda x:x[0])
+    df['names']= df.apply(lambda x :n_random_first_names(x.n_agents),axis=1)
 
-    final_df.to_json('epistemic-logic-reasoning.jsonl', orient='records', lines=True)
-    return final_df
+    for k in ['premise','hypothesis','true_hypothesis','false_hypothesis']:
+        if k not in df:
+            continue
+        df[k] = df.apply(lambda x: name_agents(x[k], x['names']), axis=1)
+        df[k] = df[k].map(postprocess)
+        if 'hyp' in k:
+            df[k] = df.apply(lambda x: postprocess_hyp(x[k], seed=x['premise']),axis=1)
+
+    df.to_json('mindgames.jsonl', orient='records', lines=True)
+    return df

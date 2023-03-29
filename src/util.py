@@ -63,7 +63,7 @@ def parse_response(response):
 
 
 def class_to_dict(x):
-    name=x.__name__
+    name=x.__class__.__name__
     x=edict({a:getattr(x,a) for a in dir(x) if not a.startswith('__')})
     x['name']=name
     return x
