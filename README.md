@@ -3,7 +3,7 @@
 Code associated to the MindGames article
 We generate epistemic reasoning problems using modal logic to target theory of mind (tom) in natural language processing models.
 
-🤗 https://huggingface.co/datasets/sileod/mindgames
+🤗 https://hf.co/datasets/sileod/mindgames
 
 ```
 @article{sileo2023mindgames,
