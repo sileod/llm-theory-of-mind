@@ -5,6 +5,7 @@ We generate epistemic reasoning problems using modal logic to target theory of m
 
 🤗 https://hf.co/datasets/sileod/mindgames
 
+To appear at EMNLP 2023 Findings !
 ```
 @article{sileo2023mindgames,
   title={MindGames: Targeting Theory of Mind in Large Language Models with Dynamic Epistemic Modal Logic},
