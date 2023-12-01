@@ -1,7 +1,7 @@
 # MindGames
 
 Code associated to the MindGames article
-We generate epistemic reasoning problems using modal logic to target theory of mind (tom) in natural language processing models.
+We generate epistemic reasoning problems (akin to muddy children or drinking logicians) using modal logic to target theory of mind (tom) in natural language processing models.
 
 🤗 https://hf.co/datasets/sileod/mindgames
 
