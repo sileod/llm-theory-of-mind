@@ -14,3 +14,5 @@ To appear at EMNLP 2023 Findings !
   year={2023}
 }
 ```
+
+Contact (interested in logic+NLP colabs) damien.sileo@inria.fr
