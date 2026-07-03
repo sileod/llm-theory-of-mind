@@ -6,7 +6,7 @@ We generate epistemic reasoning problems (akin to muddy children or drinking log
 🤗 https://hf.co/datasets/sileod/mindgames
 
 Published at EMNLP Findings 2023
-```
+```bib
 @inproceedings{sileo-lernould-2023-mindgames,
     title = "{M}ind{G}ames: Targeting Theory of Mind in Large Language Models with Dynamic Epistemic Modal Logic",
     author = "Sileo, Damien  and
