@@ -89,7 +89,8 @@ def solve(problem):
 
     data = 'smcinput=' + urllib.parse.quote(problem)
 
-    response = requests.post('https://w4eg.de/malvin/illc/smcdelweb/check', headers=headers, data=data)
+    BASE="https://tools.malv.in/smcdelweb"
+    response = requests.post(f'{BASE}/check', headers=headers, data=data)
     try:
         label = parse_response(response.text)
     except:
