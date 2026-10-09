@@ -31,16 +31,23 @@ class UnaryOperator(Operator):
         return f'{self.symbol} {self.expr}'
 
     def to_smcdel(self):
-        return f'{self.smcdel_symbol} {self.expr.to_smcdel()}'
+        return f'{self.smcdel_symbol}({self.expr.to_smcdel()})'
+
+class Id(UnaryOperator):
+    def __init__(self, expr):
+        super().__init__('', expr)
+        self.smcdel_symbol = ''
 
 class Not(UnaryOperator):
     def __init__(self, expr):
         super().__init__('not', expr)
         self.smcdel_symbol = '~'
-
+        #TODO assert depth is 0
     def __str__(self):
-        # Replaces is by is not to negate the expression
-        return str(self.expr).replace(' is ', ' is not ')
+        s=str(self.expr)
+        if "knows" in s:
+            return s.replace('knows','does not know')
+        return s.replace(' is ', ' is not ').replace('red','black')
 
 class BinaryOperator(Operator):
     def __init__(self, symbol, l_expr, r_expr):
@@ -66,7 +73,6 @@ class And(BinaryOperator):
         super().__init__('and', l_expr, r_expr)
         self.smcdel_symbol = '&'
 
-
 class Someone(Operator):
     def __init__(self, variables):
         self.variables=variables
@@ -91,6 +97,13 @@ class NotEveryone(Someone):
         return f"(~({y}))"
     def __str__(self):
         return str(self.variables[0]).replace("Agenta","not everyone")
+
+class Nobody(Someone):
+    def to_smcdel(self):
+        y="|".join([x.to_smcdel() for x in self.variables])
+        return f"(~({y}))"
+    def __str__(self):
+        return str(self.variables[0]).replace("Agenta","nobody")
 
 class Var:
     def __init__(self, name, id):
@@ -123,28 +136,12 @@ class Knowledge:
         return f'{self.agent} {self.symbol} {self.expr}'
 
 class KnowsThat(Knowledge):
-    """
-    Represents a knowledge expression of the form "agent knows that"
-    This implies that the agent knows that the expression is true
-    """
     def __init__(self, agent, expr):
-        """
-        :param agent: The agent that has the knowledge
-        :param expr: The expression to which the agent has the knowledge
-        """
         super().__init__(agent, expr)
         self.symbol = 'knows that'
 
 class KnowsWhether(Knowledge):
-    """
-    Represents a knowledge expression of the form "agent knows whether"
-    This implies that the agent knows whether the expression is true or false
-    """
     def __init__(self, agent, expr):
-        """
-        :param agent: The agent that has the knowledge
-        :param expr: The expression to which the agent has the knowledge
-        """
         super().__init__(agent, expr)
         self.symbol = 'knows whether'
 
@@ -199,11 +196,10 @@ class Problem:
         
         # The observations of the problem
         self.observations = setup['matrix']
-        if self.observations is None:
-            self.observations = randint(2, size=(len(self.agents), len(self.variables)))
 
 
-        self.quantifiers = [self.someone(),self.everyone(),self.not_everyone()]
+        self.quantifiers = [self.someone(),self.everyone(),self.not_everyone(),self.nobody()]
+        self.quantifiers_ne = [self.someone(),self.everyone(),self.nobody()]
 
         # The announcements of the problem
         self.announcements = setup['announcements']
@@ -216,11 +212,9 @@ class Problem:
         self.hypothesis = setup['hypothesis']
         if self.hypothesis is None:
             # If no hypothesis is given, we create a random hypothesis
-            self.hypothesis = Expression(
-                random.choice([KnowsThat, KnowsWhether])(
-                    random.choice(self.agents),
+            self.hypothesis = Expression(   
                     self.random_knowledge(self.hypothesis_depth)
-                ))
+                )
 
     def get_vars(self):
         return self.variables
@@ -228,8 +222,9 @@ class Problem:
     def observations_to_str(self):
         # We get the indices of the non-zero elements in the matrix
         # And we group them by agent
-        mx = np.transpose(self.observations.nonzero())
-        groupby = np.split(mx[:, 1], np.unique(mx[:,0], return_index=True)[1][1:])
+        # (agent, observed variables) for agents that observe something; agents observing
+        # nothing are skipped without shifting the others (MindGames 1.0 shifted them)
+        groupby = [(agent, row.nonzero()[0]) for agent, row in enumerate(np.asarray(self.observations)) if row.any()]
         prefix = f"There are {number_to_words(len(self.agents))} persons. "
         # We create the string
         result = ''
@@ -240,11 +235,11 @@ class Problem:
 
         if self.format!='smcdel':
             result=f'{prefix} {result}'
-        for agent in range(len(groupby)):
+        for agent, observed in groupby:
             if self.format == 'smcdel':
-                result += f'{self.agents[agent]}:' + ','.join([self.variables[var].to_smcdel() for var in groupby[agent]]) + ' '
+                result += f'{self.agents[agent]}:' + ','.join([self.variables[var].to_smcdel() for var in observed]) + ' '
             else:
-                result += f'{self.agents[agent]} knows whether ' + ', whether '.join([str(self.variables[var]) for var in groupby[agent]]) + '. '
+                result += f'{self.agents[agent]} knows whether ' + ', whether '.join([str(self.variables[var]) for var in observed]) + '. '
                 result = replace_last_occurrence(result,', whether',' and whether')
         return result
 
@@ -292,26 +287,30 @@ class Problem:
     def someone(self): return Someone(self.variables)
     def everyone(self): return Everyone(self.variables)
     def not_everyone(self): return NotEveryone(self.variables)
+    def nobody(self): return Nobody(self.variables)
 
     def random_expression(self, depth):
         if depth == 0:
             # 50% chance of negation
             random_var = random.choice(self.variables+self.quantifiers)
-            if random.random() < 0.5:
+            if random.random() < 0.5 and random_var not in self.quantifiers:
                 return Not(random_var)
             return random_var
 
         # return random.choice([Or, And])(random_expression(vars, depth - 1), random_expression(vars, depth - 1))
         return And(self.random_expression(depth - 1), self.random_expression(depth - 1))
     
-    def random_knowledge(self, depth, exclude_agent=None):
-        knowledge_type = random.choice([KnowsThat, KnowsWhether])
+    def random_knowledge(self, depth, exclude_agent=None,negation_rate=0):
+        if not negation_rate:
+            knowledge_type = random.choice([KnowsThat, KnowsWhether])
+        else:
+            knowledge_type = KnowsWhether # not knows that has a kind of implicature
         agent = random.choice(self.agents)
-
+        negation = random.choice([Id]+[Not]*int(negation_rate))
         while agent == exclude_agent:
             agent = random.choice(self.agents)
 
         if depth == 0:
-            return knowledge_type(agent, random.choice(self.variables+self.quantifiers))
+            return negation(knowledge_type(agent, random.choice(self.variables+self.quantifiers_ne)))
 
         return knowledge_type(agent, self.random_knowledge(depth - 1, agent))

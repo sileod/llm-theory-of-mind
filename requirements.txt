@@ -1,0 +1,7 @@
+datasets
+huggingface_hub
+numpy
+openai
+pandas
+pyarrow
+pytest

@@ -3,7 +3,28 @@
 Code associated to the MindGames article
 We generate epistemic reasoning problems (akin to muddy children or drinking logicians) using modal logic to target theory of mind (tom) in natural language processing models.
 
-🤗 https://hf.co/datasets/sileod/mindgames
+🤗 https://hf.co/datasets/sileod/mindgames (version 1.1, see the changelog there)
+
+## Evaluate a model
+
+```bash
+pip install -r requirements.txt
+export OPENROUTER_API_KEY=...
+python -m mindgames.evaluate run openai/gpt-6-luna-20260922 --limit 400   # any OpenRouter model ids
+python -m mindgames.evaluate score
+```
+
+Replies go to `results/default/<model>.jsonl` (reruns only call missing items). Defaults: medium reasoning effort, temperature 0, 8,192 output tokens; a truncated or unparsable reply counts as wrong.
+
+## Layout
+
+| Path | Role |
+|---|---|
+| `src/` | Problem generator (labels from SMCDEL) |
+| `mindgames/check.py` | Model checker for the formal problems; replaces the SMCDEL web service |
+| `mindgames/release.py` | Builds 1.1 from 1.0: fixes observations in the `explicit` setup and relabels every item |
+| `mindgames/evaluate.py` | Runs models through OpenRouter and scores them |
+| `tests/` | Offline tests: `python -m pytest -q tests` |
 
 Published at EMNLP Findings 2023
 ```bib

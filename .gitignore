@@ -5,3 +5,7 @@ problems.txt
 .DS_Store
 *.ipynb
 *.jsonl
+__pycache__/
+results/
+release/
+

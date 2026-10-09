@@ -28,6 +28,8 @@ def postprocess(s):
     s=" ".join(s.split())
     if not s.endswith('.'):
         s=s+'.'
+    s= s.replace('whether everyone','whether or not everyone')
+    s= s.replace('whether nobody','whether or not nobody')
     return s
 
 def postprocess_hyp(s, seed=None):
@@ -46,7 +48,7 @@ class Setup:
     n_announcements:int=3
     n_agents:int=3
     hypothesis_depth:int=0
-    announcement_depth:int=1
+    announcement_depth:int=0
     variables=None
     agents=None
     announcements= None
@@ -91,8 +93,24 @@ class internal(Setup):
     type='mental'
 
 class explicit(Setup):
-    variables_template='$agent is muddy'
-    matrix=None
+    base_observation=f"{clique} Each person draws a card, face unrevealed (red or black)."
+    variables_template='$agent picked a red card'
+    def __post_init__(self):
+        super().__post_init__()
+        letters = string.ascii_lowercase
+        self.matrix = self.mat(self.n_agents,self.n_agents)
+        for i,j in list(zip(*self.matrix.nonzero())):
+            self.base_observation+= f" Agent{letters[j]}'s card is shown to Agent{letters[i]}."
+
+    @staticmethod
+    def mat(N, S):
+        #p = S / (N * (N - 1))  # Probability to get the expected sum S
+        p = S / (N * N)
+        matrix = np.random.rand(N, N) < p
+        #np.fill_diagonal(matrix, False) 
+        return matrix.astype(bool) 
+
+    
 
 
 def generate(Npb = 1000, Nvariations = 50, scale=5,hypothesis_depth=1):
@@ -106,18 +124,18 @@ def generate(Npb = 1000, Nvariations = 50, scale=5,hypothesis_depth=1):
     problems=[]
     # Generate the problems
     for _ in tqdm(range(Npb)):
-        setups = [forehead, forehead_mirror,  arm, internal]+[explicit]*3
+        setups = [forehead, forehead_mirror, internal]+[explicit]*2
         setups = [class_to_dict(x(
             n_agents=randint(2,scale),
             n_announcements=scale,
-            hypothesis_depth=randint(0,hypothesis_depth),
+            hypothesis_depth=randint(0,hypothesis_depth+1),
         )) for x in setups]
         setup = copy.deepcopy(np.random.choice(setups))
         setup['n_announcements'] =n_announcements= randint(0,setup['n_announcements'])
         setup['variables'] = [Var(Template(setup['variables_template']).substitute(agent=setup['agents'][i]), i+1) for i in range(len(setup['agents']))]
         base_pb = Problem(**setup)
         setup['announcements'] = [Expression(Announcement(base_pb.someone()))]+[Expression(Announcement(random.choice([
-            base_pb.random_expression(1), base_pb.random_knowledge(0)])))
+            base_pb.random_expression(0)]+[base_pb.random_knowledge(0,negation_rate=4)]*4)))
             for _ in range(setup['n_announcements'])
         ]
 
@@ -167,7 +185,7 @@ def generate(Npb = 1000, Nvariations = 50, scale=5,hypothesis_depth=1):
 
     df=df.explode(['smcdel_problem','pbcheck','hypothesis','label','hypothesis_depth','setup'])
     #df=df.apply(sample,axis=1)
-    df=df.drop_duplicates(subset=['premise', 'hypothesis']).reset_index(drop=True)
+    df=df.drop_duplicates(subset='smcdel_problem').reset_index(drop=True)
     # De-anonymize the names
     for k in ['n_announcements','n_agents']:
         df[k]=df[k].map(lambda x:x[0])
@@ -180,6 +198,6 @@ def generate(Npb = 1000, Nvariations = 50, scale=5,hypothesis_depth=1):
         df[k] = df[k].map(postprocess)
         if 'hyp' in k:
             df[k] = df.apply(lambda x: postprocess_hyp(x[k], seed=x['premise']),axis=1)
-
+    
     df.to_json('mindgames.jsonl', orient='records', lines=True)
     return df
