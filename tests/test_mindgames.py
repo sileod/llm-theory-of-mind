@@ -38,3 +38,14 @@ def test_parse():
     assert parse("Yes") is True and parse("**Answer: No**") is False
     assert parse("reasoning...\n\nAnswer: Yes") is True and parse(r"\boxed{\text{No}}") is False
     assert parse(None) is None and parse("maybe") is None
+
+
+def test_english_matches_labels():
+    from mindgames.diamond import candidate
+    from mindgames.english import parse_item
+
+    items = [c for c in map(candidate, range(200)) if c]
+    assert items
+    for item in items:
+        rebuilt = check(parse_item(item["premise"], item["hypothesis"], item["names"]))[0]
+        assert ("entailment" if rebuilt else "not_entailment") == item["label"], item["premise"]

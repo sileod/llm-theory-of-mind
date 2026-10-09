@@ -18,7 +18,7 @@ import pandas as pd
 from datasets import load_dataset
 
 REPO = "sileod/mindgames"
-REVISION = "v1.1"
+REVISION = "v1.2"
 PROMPT = """Situation: {premise}
 
 Assume everyone reasons perfectly, public announcements are true and heard by everyone, and each person knows only what they observe or can deduce.

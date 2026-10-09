@@ -12,6 +12,7 @@ pip install -r requirements.txt
 export OPENROUTER_API_KEY=...
 python -m mindgames.evaluate run openai/gpt-6-luna-20260922 --limit 400   # any OpenRouter model ids
 python -m mindgames.evaluate score
+python -m mindgames.evaluate run openai/gpt-6-luna-20260922 --config diamond && python -m mindgames.evaluate score --config diamond
 ```
 
 Replies go to `results/default/<model>.jsonl` (reruns only call missing items). Defaults: medium reasoning effort, temperature 0, 8,192 output tokens; a truncated or unparsable reply counts as wrong.
@@ -23,6 +24,8 @@ Replies go to `results/default/<model>.jsonl` (reruns only call missing items). 
 | `src/` | Problem generator (labels from SMCDEL) |
 | `mindgames/check.py` | Model checker for the formal problems; replaces the SMCDEL web service |
 | `mindgames/release.py` | Builds 1.1 from 1.0: fixes observations in the `explicit` setup and relabels every item |
+| `mindgames/diamond.py` | Generates the harder `diamond` test config |
+| `mindgames/english.py` | Rebuilds problems from their English alone, to check labels |
 | `mindgames/evaluate.py` | Runs models through OpenRouter and scores them |
 | `tests/` | Offline tests: `python -m pytest -q tests` |
 
