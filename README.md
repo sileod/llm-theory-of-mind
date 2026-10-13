@@ -24,8 +24,7 @@ Replies go to `results/default/<model>.jsonl` (reruns only call missing items). 
 | `src/` | Problem generator (labels from SMCDEL) |
 | `mindgames/check.py` | Model checker for the formal problems; replaces the SMCDEL web service |
 | `mindgames/release.py` | Builds 1.1 from 1.0: fixes observations in the `explicit` setup and relabels every item |
-| `mindgames/diamond2.py` | Generates the `diamond` test config (1.3): multi-round muddy-children problems in matched pairs |
-| `mindgames/diamond.py` | Generator of the 1.2 diamond, kept to reproduce it |
+| `mindgames/diamond.py` | Generates the `diamond` test config: multi-round muddy-children problems in matched pairs |
 | `mindgames/english.py` | Rebuilds problems from their English alone, to check labels |
 | `mindgames/pal.py` | A second, independently written checker, to cross-check labels |
 | `mindgames/evaluate.py` | Runs models through OpenRouter and scores them |

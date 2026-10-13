@@ -40,27 +40,16 @@ def test_parse():
     assert parse(None) is None and parse("maybe") is None
 
 
-def test_english_matches_labels():
-    from mindgames.diamond import candidate
-    from mindgames.english import parse_item
-
-    items = [c for c in map(candidate, range(200)) if c]
-    assert items
-    for item in items:
-        rebuilt = check(parse_item(item["premise"], item["hypothesis"], item["names"]))[0]
-        assert ("entailment" if rebuilt else "not_entailment") == item["label"], item["premise"]
-
-
 def test_independent_checker_agrees():
     from mindgames.pal import label
     assert label(MUDDY + "(Agenta knows whether 1)") == (False, 3)
     assert label(MUDDY + "[ ! ~(Agenta knows whether 1) & ~(Agentb knows whether 2) ] (Agenta knows that 1)") == (True, 1)
 
 
-def test_diamond2_pair_is_a_reordering():
+def test_diamond_pair_is_a_reordering():
     import re
 
-    from mindgames.diamond2 import candidate
+    from mindgames.diamond import candidate
     from mindgames.english import parse_item
     from mindgames.pal import label
     for seed, setup in [(20450898, "forehead"), (60101034, "explicit")]:
